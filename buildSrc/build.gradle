@@ -1,0 +1,15 @@
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+repositories {
+    mavenLocal()
+    gradlePluginPortal()
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    implementation libs.kotlin.gradle.plugin
+    implementation 'org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin:13.1.0'
+}

@@ -1,0 +1,20 @@
+plugins {
+    id 'buildlogic.kotlin-common-conventions'
+}
+
+allprojects {
+    group = project.property('group')
+    version = project.property('version')
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+
+

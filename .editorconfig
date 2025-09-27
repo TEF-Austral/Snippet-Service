@@ -1,0 +1,18 @@
+[*.kt]
+
+
+max_line_length = 100
+# Formatter
+# requiere espacios dentro de las llaves. como esta desactivado, no se requieren espacios. {} -> { }
+ktlint_standard_curly-spacing = disabled
+ktlint_standard_max-line-length = enabled
+
+# Linter
+# requiere que el nombre del archivo .kt sea el mismo que la clase pública que contiene.
+ktlint_standard_filename = disabled
+
+# requiere que las declaraciones de importación estén ordenadas alfabéticamente.
+ktlint_standard_import-ordering = disabled
+
+# requiere que no haya una línea vacía al comienzo del cuerpo de una clase o interfaz.
+ktlint_standard_no-empty-first-line-in-class-body = disabled
