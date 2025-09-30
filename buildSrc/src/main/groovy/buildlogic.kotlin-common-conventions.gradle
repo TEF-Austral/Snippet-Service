@@ -90,7 +90,7 @@ publishing {
     repositories {
         maven {
             name = "PrintScriptPackages"
-            url = uri("https://maven.pkg.github.com/TEF-Austral/BASE-REPO")
+            url = uri("https://maven.pkg.github.com/TEF-Austral/Snippet-Service")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
