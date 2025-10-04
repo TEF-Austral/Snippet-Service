@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile.multi
     ports:
-      - 8001:8080
+      - 8002:8080
     env_file:
       - .env
     environment:
