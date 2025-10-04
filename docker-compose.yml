@@ -1,0 +1,25 @@
+services:
+  api:
+    container_name: "snippet-service-api"
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+    ports:
+      - 8002:8080
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres_db
+
+  db:
+    container_name: snippet_db
+    image: postgres:16
+    ports:
+      - 5434:5432
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
