@@ -1,19 +1,24 @@
 plugins {
-    id 'groovy-gradle-plugin'
+    id 'buildlogic.kotlin-common-conventions' apply false
 }
 
-repositories {
-    mavenLocal()
-    gradlePluginPortal()
-    mavenCentral()
-    google()
+allprojects {
+    group = project.property('group')
+    version = project.property('version')
 }
 
-dependencies {
-    implementation libs.kotlin.gradle.plugin
-    implementation 'org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin:13.1.0'
-    implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25'
-    implementation 'org.jetbrains.kotlin:kotlin-allopen:1.9.25'
-    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.5.6'
-    implementation 'io.spring.gradle:dependency-management-plugin:1.1.7'
+subprojects {
+    apply plugin: 'buildlogic.kotlin-common-conventions'
+
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.named('bootJar') {
+        enabled = false
+    }
+
+    tasks.named('jar') {
+        enabled = true
+    }
 }
