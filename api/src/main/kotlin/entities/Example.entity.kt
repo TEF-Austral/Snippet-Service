@@ -1,4 +1,3 @@
 package api.entities
 
-class ExampleEntity {
-}
+class ExampleEntity

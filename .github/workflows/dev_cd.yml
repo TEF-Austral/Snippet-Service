@@ -19,6 +19,11 @@ jobs:
         with:
           length: 8
 
+      - name: Set lowercase image name
+        id: image
+        run: |
+          echo "name=$(echo 'ghcr.io/${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -27,7 +32,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Push to GitHub Packages
         id: docker_build
@@ -35,4 +40,5 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/tef-austral/echo:${{ steps.short-sha.outputs.sha }}
+            ${{ steps.image.outputs.name }}:${{ steps.short-sha.outputs.sha }}
+            ${{ steps.image.outputs.name }}:latest

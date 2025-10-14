@@ -15,26 +15,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necesario para obtener el historial completo de commits
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
-      - name: Set up JDK 22
-        uses: actions/setup-java@v1
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: '22'
+          java-version: '21'
+          distribution: 'temurin'
 
       - name: Configure Git
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
+      - name: Grant execute permission
+        run: chmod +x ./gradlew
+
       - name: Determine version bump
         id: version
         run: |
-          # Obtener el último commit message
           COMMIT_MSG=$(git log -1 --pretty=%B)
           
-          # Determinar el tipo de incremento basado en conventional commits
           if [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]] || [[ "$COMMIT_MSG" == *"!"* ]]; then
             echo "bump=major" >> $GITHUB_OUTPUT
           elif [[ "$COMMIT_MSG" == feat:* ]] || [[ "$COMMIT_MSG" == feature:* ]]; then
@@ -42,20 +44,17 @@ jobs:
           elif [[ "$COMMIT_MSG" == fix:* ]] || [[ "$COMMIT_MSG" == bugfix:* ]] || [[ "$COMMIT_MSG" == patch:* ]]; then
             echo "bump=patch" >> $GITHUB_OUTPUT
           else
-            echo "bump=patch" >> $GITHUB_OUTPUT  # Por defecto es patch
+            echo "bump=patch" >> $GITHUB_OUTPUT
           fi
 
       - name: Update version in gradle.properties
         id: update_version
         run: |
-          # Leer la versión actual
           CURRENT_VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
           echo "Current version: $CURRENT_VERSION"
           
-          # Separar major, minor y patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
           
-          # Incrementar según el tipo
           if [[ "${{ steps.version.outputs.bump }}" == "major" ]]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
@@ -70,10 +69,8 @@ jobs:
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "New version: $NEW_VERSION"
           
-          # Actualizar gradle.properties
           sed -i "s/version=.*/version=${NEW_VERSION}/" gradle.properties
           
-          # Guardar la nueva versión para usarla después
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit version bump
@@ -90,9 +87,6 @@ jobs:
           git tag "v${{ steps.update_version.outputs.new_version }}"
           git push origin "v${{ steps.update_version.outputs.new_version }}"
 
-      - name: Grant execute permission
-        run: chmod +x ./gradlew
-
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
 
@@ -100,4 +94,4 @@ jobs:
         run: ./gradlew publish --no-daemon --stacktrace --info
         env:
           GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

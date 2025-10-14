@@ -1,4 +1,3 @@
 package api.controllers
 
-class ExampleController {
-}
+class ExampleController
