@@ -14,4 +14,4 @@ plugins {
 
 rootProject.name = 'snippet-service'
 
-include 'snippet'
+include 'api'
