@@ -2,23 +2,12 @@ plugins {
     id 'buildlogic.kotlin-common-conventions'
 }
 
-group = 'com.github.tef-austral'
-version = '1.1.2'
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-}
-
-tasks.named('bootJar') {
-    enabled = true
-}
-
-tasks.named('jar') {
-    enabled = false
 }
 
 test {

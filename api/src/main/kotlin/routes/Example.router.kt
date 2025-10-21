@@ -1,4 +1,3 @@
 package api.routes
 
-class ExampleRouter {
-}
+class ExampleRouter

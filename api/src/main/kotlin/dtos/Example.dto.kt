@@ -1,4 +1,3 @@
 package api.dtos
 
-class ExampleDTO {
-}
+class ExampleDTO

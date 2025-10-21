@@ -1,4 +1,3 @@
 package api.repositories
 
-class ExampleRepository {
-}
+class ExampleRepository

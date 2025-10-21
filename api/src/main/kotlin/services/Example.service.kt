@@ -1,4 +1,3 @@
 package api.services
 
-class ExampleService {
-}
+class ExampleService
