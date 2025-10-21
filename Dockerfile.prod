@@ -5,6 +5,11 @@ RUN gradle :api:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine
 EXPOSE 8080
+
+ENV SPRING_PROFILES_ACTIVE=production
+ENV JAVA_OPTS=""
+
 RUN mkdir /app
 COPY --from=build /home/gradle/src/api/build/libs/*.jar /app/spring-boot-application.jar
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "/app/spring-boot-application.jar"]
+
+ENTRYPOINT sh -c "java ${JAVA_OPTS} -jar -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE} /app/spring-boot-application.jar"
