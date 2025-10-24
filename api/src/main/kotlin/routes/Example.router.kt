@@ -1,3 +1,3 @@
-package api.routes
+package routes
 
 class ExampleRouter

@@ -1,11 +1,9 @@
-package api
-
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class ExampleServiceApplication
+class SnippetServiceApplication
 
 fun main(args: Array<String>) {
-    runApplication<ExampleServiceApplication>(*args)
+    runApplication<SnippetServiceApplication>(*args)
 }
