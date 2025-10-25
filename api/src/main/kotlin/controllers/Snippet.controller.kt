@@ -67,13 +67,4 @@ class SnippetController(
         val snippets = service.getOwnerSnippets(userId)
         return ResponseEntity.ok(snippets)
     }
-
-    // Le falta el middleware que obtenga la idententidad del requester con el token.
-    @GetMapping("/access/")
-    fun getSnippetsThatUserHasAccess(
-        @PathVariable userId: String,
-    ): ResponseEntity<List<SnippetResponseDTO>> {
-        val snippets = service.getSnippetThatUserHasAccess(userId)
-        return ResponseEntity.ok(snippets)
-    }
 }

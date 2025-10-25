@@ -9,7 +9,5 @@ interface SnippetRepository : JpaRepository<Snippet, Long> {
 
     fun findByBucketId(bucketId: String): List<Snippet>
 
-    fun getOwnerSnippets(ownerId: String): List<Snippet>
-
-    fun getAllSnippetThatUserHasAccess(userId: String): List<Snippet>
+    fun findByOwnerId(ownerId: String): List<Snippet>
 }

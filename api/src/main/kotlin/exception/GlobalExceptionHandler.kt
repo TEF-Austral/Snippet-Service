@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -44,6 +46,28 @@ class GlobalExceptionHandler {
                 message = errors,
             )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+    }
+
+    @ExceptionHandler(HttpClientErrorException::class)
+    fun handleHttpClientError(ex: HttpClientErrorException): ResponseEntity<ErrorResponse> {
+        val error =
+            ErrorResponse(
+                status = ex.statusCode.value(),
+                error = "External Service Error",
+                message = "Error communicating with external service: ${ex.statusText}",
+            )
+        return ResponseEntity.status(ex.statusCode).body(error)
+    }
+
+    @ExceptionHandler(HttpServerErrorException::class)
+    fun handleHttpServerError(ex: HttpServerErrorException): ResponseEntity<ErrorResponse> {
+        val error =
+            ErrorResponse(
+                status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+                error = "Service Unavailable",
+                message = "External service is temporarily unavailable: ${ex.statusText}",
+            )
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error)
     }
 
     @ExceptionHandler(Exception::class)

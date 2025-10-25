@@ -19,6 +19,4 @@ interface SnippetService {
     fun deleteSnippet(id: Long)
 
     fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO>
-
-    fun getSnippetThatUserHasAccess(userId: String): List<SnippetResponseDTO>
 }

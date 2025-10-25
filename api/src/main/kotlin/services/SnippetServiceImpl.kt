@@ -1,5 +1,6 @@
 package services
 
+import clients.AssetServiceClient
 import dtos.SnippetRequestDTO
 import dtos.UpdateSnippetDTO
 import dtos.SnippetResponseDTO
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class SnippetServiceImpl(
     private val repository: SnippetRepository,
+    private val assetServiceClient: AssetServiceClient,
 ) : SnippetService {
 
     override fun createSnippet(requestDTO: SnippetRequestDTO): SnippetResponseDTO {
@@ -18,7 +20,8 @@ class SnippetServiceImpl(
             Snippet(
                 name = requestDTO.name,
                 description = requestDTO.description,
-                bucketId = "default-bucket",
+                bucketKey = "default-bucket-key",
+                bucketContainer = "snippets",
                 language = requestDTO.language,
                 version = requestDTO.version,
             )
@@ -38,12 +41,7 @@ class SnippetServiceImpl(
         }
 
     override fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO> =
-        repository.getOwnerSnippets(ownerId).map {
-            it.toDto()
-        }
-
-    override fun getSnippetThatUserHasAccess(userId: String): List<SnippetResponseDTO> =
-        repository.getAllSnippetThatUserHasAccess(userId).map {
+        repository.findByOwnerId(ownerId).map {
             it.toDto()
         }
 
@@ -54,6 +52,18 @@ class SnippetServiceImpl(
     ): SnippetResponseDTO {
         val existing =
             repository.findById(id).orElseThrow { NoSuchElementException("Snippet not found: $id") }
+
+        requestDTO.content?.let { content ->
+            assetServiceClient.createOrUpdateAsset(
+                container = existing.bucketContainer,
+                key =
+                    existing.bucketKey ?: throw IllegalStateException(
+                        "Snippet has no bucket key",
+                    ),
+                content = content,
+            )
+        }
+
         existing.name = requestDTO.name ?: existing.name
         existing.description = requestDTO.description ?: existing.description
         existing.language = requestDTO.language ?: existing.language
@@ -62,28 +72,26 @@ class SnippetServiceImpl(
         return saved.toDto()
     }
 
+    @Transactional
     override fun deleteSnippet(id: Long) {
+        val existing =
+            repository.findById(id).orElseThrow { NoSuchElementException("Snippet not found: $id") }
+
+        assetServiceClient.deleteAsset(
+            container = existing.bucketContainer,
+            key = existing.bucketKey ?: throw IllegalStateException("Snippet has no bucket key"),
+        )
+
         repository.deleteById(id)
     }
 
-    fun deleteAllByBucketId(bucketId: String): Int {
-        val snippets = repository.findByBucketId(bucketId)
-        val count = snippets.size
-        repository.deleteAll(snippets)
-        return count
-    }
-
-    fun existsByBucketId(bucketId: String): Boolean =
-        repository.findByBucketId(bucketId).isNotEmpty()
-
-    fun getAllBucketIds(): List<String> = repository.findAll().map { it.bucketId }.distinct()
-
     private fun Snippet.toDto() =
         SnippetResponseDTO(
-            snippetId = this.snippetId ?: 0L,
+            snippetId = this.id ?: 0L,
             name = this.name,
             description = this.description,
-            bucketId = this.bucketId,
+            bucketContainer = this.bucketContainer,
+            bucketKey = this.bucketKey ?: "",
             language = this.language,
             version = this.version,
         )
