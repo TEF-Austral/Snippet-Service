@@ -84,6 +84,8 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
+
 
       # ========== BUILD DOCKER ==========
       - name: Set image name
