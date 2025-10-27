@@ -5,18 +5,26 @@ import dtos.SnippetResponseDTO
 import dtos.UpdateSnippetDTO
 
 interface SnippetService {
-    fun createSnippet(requestDTO: SnippetRequestDTO): SnippetResponseDTO
+    fun createSnippet(
+        requestDTO: SnippetRequestDTO,
+        ownerId: String,
+    ): SnippetResponseDTO
 
-    fun getSnippetById(id: Long): SnippetResponseDTO?
-
-    fun getSnippetsByBucketId(bucketId: String): List<SnippetResponseDTO>
+    fun getSnippetById(
+        id: Long,
+        requesterId: String,
+    ): SnippetResponseDTO
 
     fun updateSnippet(
         id: Long,
         requestDTO: UpdateSnippetDTO,
+        requesterId: String,
     ): SnippetResponseDTO
 
-    fun deleteSnippet(id: Long)
+    fun deleteSnippet(
+        id: Long,
+        requesterId: String,
+    )
 
     fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO>
 }

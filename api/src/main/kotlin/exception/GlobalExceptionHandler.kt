@@ -80,4 +80,15 @@ class GlobalExceptionHandler {
             )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)
     }
+
+    @ExceptionHandler(IllegalAccessException::class)
+    fun handleForbidden(ex: IllegalAccessException): ResponseEntity<ErrorResponse> {
+        val error =
+            ErrorResponse(
+                status = HttpStatus.FORBIDDEN.value(),
+                error = "Forbidden",
+                message = ex.message ?: "Access denied",
+            )
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
+    }
 }

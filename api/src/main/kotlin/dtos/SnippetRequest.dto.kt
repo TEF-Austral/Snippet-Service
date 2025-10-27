@@ -13,6 +13,4 @@ data class SnippetRequestDTO(
     var language: Language,
     @field:NotBlank(message = "Version is required")
     val version: String,
-    @field:NotBlank(message = "Owner ID is required")
-    val ownerId: String,
 )
