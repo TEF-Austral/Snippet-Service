@@ -1,4 +1,4 @@
-package clients
+package component
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
@@ -11,9 +11,10 @@ import org.springframework.web.client.RestTemplate
 @Component
 class AssetServiceClient(
     private val restTemplate: RestTemplate,
-    @Value("\${asset.service.url}") private val assetServiceUrl: String,
+    @param:Value("\${asset.service.url}") private val assetServiceUrl: String,
 ) {
 
+    @Suppress("unused")
     fun getAsset(
         container: String,
         key: String,

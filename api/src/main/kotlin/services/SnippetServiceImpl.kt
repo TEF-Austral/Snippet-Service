@@ -1,6 +1,6 @@
 package services
 
-import clients.AssetServiceClient
+import component.AssetServiceClient
 import dtos.SnippetRequestDTO
 import dtos.UpdateSnippetDTO
 import dtos.SnippetResponseDTO
