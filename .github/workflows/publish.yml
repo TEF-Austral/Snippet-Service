@@ -106,6 +106,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          build-args: |
+            GITHUB_ACTOR=${{ github.actor }}
+            REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:${{ steps.update_version.outputs.new_version }}
