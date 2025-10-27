@@ -28,5 +28,5 @@ kotlin {
 }
 
 springBoot {
-    mainClass = 'api.ExampleServiceApplicationKt'
+    mainClass = 'snippet.SnippetServiceApplicationKt'
 }
