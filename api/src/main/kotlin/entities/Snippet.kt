@@ -18,6 +18,7 @@ import java.util.UUID
     indexes = [
         Index(name = "idx_bucket_key", columnList = "bucket_key"),
         Index(name = "idx_language", columnList = "language"),
+        Index(name = "idx_owner_id", columnList = "owner_id"), // Nuevo índice
     ],
 )
 data class Snippet(
@@ -29,6 +30,8 @@ data class Snippet(
     var name: String,
     @Column(name = "description", columnDefinition = "TEXT")
     var description: String,
+    @Column(name = "owner_id", nullable = false, length = 255)
+    var ownerId: String,
     @Column(name = "bucket_key", nullable = false, length = 255)
     var bucketKey: String? = null,
     @Column(name = "bucket_container", nullable = false, length = 255)

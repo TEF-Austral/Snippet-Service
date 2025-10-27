@@ -495,11 +495,9 @@ class FakeSnippetRepository : SnippetRepository {
 
     override fun existsById(id: Long): Boolean = snippets.containsKey(id)
 
-    @Suppress("UNUSED_PARAMETER")
     override fun findByBucketId(bucketId: String): List<Snippet> =
         snippets.values.filter { it.bucketKey == bucketId }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun findByOwnerId(ownerId: String): List<Snippet> =
         ownerMap.filter { it.value == ownerId }.mapNotNull { snippets[it.key] }
 
