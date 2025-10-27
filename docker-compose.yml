@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GITHUB_ACTOR: ${GITHUB_ACTOR}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: ghcr.io/tef-austral/snippet-api:latest
     ports:
       - 8002:8080
@@ -17,8 +20,10 @@ services:
     image: postgres:16
     ports:
       - 5434:5432
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_SNIPPET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_SNIPPET}
+      POSTGRES_DB: ${POSTGRES_DB_SNIPPET}
     volumes:
       - pgdata:/var/lib/postgresql/data
 
