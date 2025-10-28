@@ -12,7 +12,7 @@ Before building the Docker image, you need to configure GitHub credentials to ac
 
 1. Copy `env.example` to `.env` if you haven't already:
    ```bash
-   cp env.example .env
+   cp .env.example .env
    ```
 
 2. Edit the `.env` file and update the following variables with your GitHub credentials:

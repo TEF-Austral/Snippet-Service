@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:formatter-db}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USER:sa}
-    password: ${DB_PASSWORD:password}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -14,7 +14,7 @@ spring:
 
   asset:
     service:
-      url: ${ASSET_SERVICE_URL:http://localhost/api/assets/v1/asset}
+      url: ${ASSET_SERVICE_URL}
 
 management:
   endpoints:

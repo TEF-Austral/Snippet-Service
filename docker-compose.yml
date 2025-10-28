@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       args:
         GITHUB_ACTOR: ${GITHUB_ACTOR}
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_TOKEN: ${REDIS_TOKEN}
     image: ghcr.io/tef-austral/snippet-api:latest
     ports:
       - 8002:8080
