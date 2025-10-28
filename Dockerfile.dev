@@ -1,4 +1,5 @@
-FROM gradle:8.5.0-jdk21-alpine
+# STAGE 1: Build the application
+FROM gradle:8.5.0-jdk21-alpine AS build
 
 # Accept build arguments for GitHub credentials
 ARG GITHUB_ACTOR
@@ -10,6 +11,20 @@ ENV REDIS_TOKEN=${REDIS_TOKEN}
 
 COPY . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon
+
+# Build the :api:bootJar
+RUN gradle :api:bootJar --no-daemon \
+    -Pgpr.user=${GITHUB_ACTOR} \
+    -Pgpr.key=${REDIS_TOKEN}
+
+# STAGE 2: Create the final, lightweight image
+FROM eclipse-temurin:21-jre-alpine
 EXPOSE 8080
-ENTRYPOINT ["java","-jar", "/home/gradle/src/build/libs/Snippet-Service-1.1.2.jar"]
+RUN mkdir /app
+
+# Copy the built jar from the 'build' stage
+# This finds the jar in api/build/libs/ and renames it
+COPY --from=build /home/gradle/src/api/build/libs/*.jar /app/spring-boot-application.jar
+
+# Run the application WITHOUT the production profile
+ENTRYPOINT ["java", "-jar", "/app/spring-boot-application.jar"]

@@ -3,10 +3,10 @@ services:
     container_name: "snippet-service-api"
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
-        GITHUB_ACTOR: ${GITHUB_ACTOR:-}
-        REDIS_TOKEN: ${REDIS_TOKEN:-}
+        GITHUB_ACTOR: ${GITHUB_ACTOR}
+        REDIS_TOKEN: ${REDIS_TOKEN}
     image: ghcr.io/tef-austral/snippet-api:latest
     ports:
       - 8002:8080

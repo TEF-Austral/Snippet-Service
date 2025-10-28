@@ -21,6 +21,19 @@ spring:
     service:
       url: ${ASSET_SERVICE_URL}
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI}
+
+authorization:
+  service:
+    url: ${AUTHORIZATION_SERVICE_URL}
+
+auth0:
+  audience: ${AUTH0_AUDIENCE}
+
 management:
   endpoints:
     web:
