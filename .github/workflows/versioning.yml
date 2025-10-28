@@ -1,0 +1,79 @@
+name: Version Management
+
+on:
+  workflow_call:
+    inputs:
+      commit_version:
+        description: 'Whether to commit version changes back to repo'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      version:
+        description: "The new version number"
+        value: ${{ jobs.version.outputs.version }}
+      bump_type:
+        description: "Type of version bump (major/minor/patch)"
+        value: ${{ jobs.version.outputs.bump_type }}
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.update_version.outputs.new_version }}
+      bump_type: ${{ steps.version.outputs.bump }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Configure Git
+        if: inputs.commit_version
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      # ========== DETERMINE VERSION BUMP ==========
+      - name: Determine version bump
+        id: version
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          if [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]] || [[ "$COMMIT_MSG" == *"!"* ]]; then
+            echo "bump=major" >> $GITHUB_OUTPUT
+          elif [[ "$COMMIT_MSG" == feat:* ]] || [[ "$COMMIT_MSG" == feature:* ]]; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+          elif [[ "$COMMIT_MSG" == fix:* ]] || [[ "$COMMIT_MSG" == bugfix:* ]] || [[ "$COMMIT_MSG" == patch:* ]]; then
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          else
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update version
+        id: update_version
+        run: |
+          CURRENT_VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          if [[ "${{ steps.version.outputs.bump }}" == "major" ]]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [[ "${{ steps.version.outputs.bump }}" == "minor" ]]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          sed -i "s/version=.*/version=${NEW_VERSION}/" gradle.properties
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit and tag
+        if: inputs.commit_version
+        run: |
+          git add gradle.properties
+          git commit -m "chore: bump version to ${{ steps.update_version.outputs.new_version }} [skip ci]"
+          git push
+          git tag "v${{ steps.update_version.outputs.new_version }}"
+          git push origin "v${{ steps.update_version.outputs.new_version }}"

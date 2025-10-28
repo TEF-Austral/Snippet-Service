@@ -12,7 +12,7 @@ permissions:
 jobs:
   # ========== VERSIONING ==========
   versioning:
-    uses: ./.github/workflows/publish.yml
+    uses: ./.github/workflows/versioning.yml
     with:
       commit_version: true
     secrets: inherit
