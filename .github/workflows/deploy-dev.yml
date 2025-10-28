@@ -12,9 +12,9 @@ permissions:
 jobs:
   # ========== VERSIONING ==========
   versioning:
-    uses: ./.github/workflows/versioning.yml
+    uses: ./.github/workflows/publish.yml
     with:
-      commit_version: false  # No commitear en DEV
+      commit_version: false
     secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
