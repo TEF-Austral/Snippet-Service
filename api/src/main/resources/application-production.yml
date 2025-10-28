@@ -5,6 +5,10 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
+  asset:
+    service:
+      url: ${ASSET_SERVICE_URL:http://localhost/api/assets/v1/asset}
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false

@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GITHUB_ACTOR: ${GITHUB_ACTOR:-}
+        REDIS_TOKEN: ${REDIS_TOKEN:-}
     image: ghcr.io/tef-austral/snippet-api:latest
     ports:
       - 8002:8080
@@ -17,10 +20,22 @@ services:
     image: postgres:16
     ports:
       - 5434:5432
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  redis:
+    container_name: snippet_redis
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   pgdata:
+  redis_data:
