@@ -42,6 +42,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
           REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
+          AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
+          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
 
       # ========== BUILD & PUSH DOCKER ==========
       - name: Set image name

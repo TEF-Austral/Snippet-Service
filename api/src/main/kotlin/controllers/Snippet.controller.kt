@@ -24,7 +24,7 @@ class SnippetController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
-    @PostMapping("")
+    @PostMapping("/")
     fun createSnippet(
         @Valid @RequestBody requestDTO: SnippetRequestDTO,
     ): ResponseEntity<SnippetResponseDTO> {
@@ -61,7 +61,7 @@ class SnippetController(
         return ResponseEntity.ok(snippet)
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     fun getMySnippets(): ResponseEntity<List<SnippetResponseDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val snippets = service.getOwnerSnippets(userId)
