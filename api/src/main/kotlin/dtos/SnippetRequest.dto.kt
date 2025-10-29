@@ -1,6 +1,6 @@
 package dtos
 
-import entities.Language
+import Language
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 

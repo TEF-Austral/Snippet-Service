@@ -1,5 +1,8 @@
 package services
 
+import events.SnippetEvent
+import events.SnippetEventProducer
+import events.SnippetOperation
 import component.AssetServiceClient
 import dtos.SnippetRequestDTO
 import dtos.UpdateSnippetDTO
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetServiceClient,
+    private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
     override fun createSnippet(
@@ -23,12 +27,28 @@ class SnippetServiceImpl(
             Snippet(
                 name = requestDTO.name,
                 description = requestDTO.description,
-                ownerId = ownerId, // Asignar desde el token
+                ownerId = ownerId,
                 bucketContainer = "snippets",
                 language = requestDTO.language,
                 version = requestDTO.version,
             )
         val saved = repository.save(entity)
+
+        // Emitir evento
+        eventProducer.publishSnippetEvent(
+            SnippetEvent(
+                snippetId = saved.id!!,
+                bucketId = saved.bucketContainer,
+                bucketContainer = saved.bucketContainer,
+                ownerId = saved.ownerId,
+                name = saved.name,
+                content = null,
+                language = saved.language,
+                version = saved.version,
+                operation = SnippetOperation.CREATE,
+            ),
+        )
+
         return saved.toDto()
     }
 
@@ -41,7 +61,7 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar que el requester es el owner
+        // Validar que el requester es el owner, TODO esto hay que cambiarlo luego
         if (entity.ownerId != requesterId) {
             throw IllegalAccessException("You don't have permission to access this snippet")
         }
@@ -63,18 +83,19 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar ownership
         if (existing.ownerId != requesterId) {
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
-        requestDTO.content?.let { content ->
+        var content: String? = null
+        requestDTO.content?.let { newContent ->
+            content = newContent
             assetServiceClient.createOrUpdateAsset(
                 container = existing.bucketContainer,
                 key =
                     existing.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
-                content = content,
+                content = newContent,
             )
         }
 
@@ -84,6 +105,22 @@ class SnippetServiceImpl(
         existing.version = requestDTO.version ?: existing.version
 
         val saved = repository.save(existing)
+
+        // Emitir evento
+        eventProducer.publishSnippetEvent(
+            SnippetEvent(
+                snippetId = saved.id!!,
+                bucketId = saved.bucketContainer,
+                bucketContainer = saved.bucketContainer,
+                ownerId = saved.ownerId,
+                name = saved.name,
+                content = content,
+                language = saved.language,
+                version = saved.version,
+                operation = SnippetOperation.UPDATE,
+            ),
+        )
+
         return saved.toDto()
     }
 
@@ -97,7 +134,6 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar ownership
         if (existing.ownerId != requesterId) {
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
@@ -110,6 +146,21 @@ class SnippetServiceImpl(
         )
 
         repository.deleteById(id)
+
+        // Emitir evento
+        eventProducer.publishSnippetEvent(
+            SnippetEvent(
+                snippetId = existing.id!!,
+                bucketId = existing.bucketContainer,
+                bucketContainer = existing.bucketContainer,
+                ownerId = existing.ownerId,
+                name = existing.name,
+                content = null,
+                language = existing.language,
+                version = existing.version,
+                operation = SnippetOperation.DELETE,
+            ),
+        )
     }
 
     private fun Snippet.toDto() =
