@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class SnippetEventProducer(
-    @param:Value($$"${redis.stream.snippet.key}") private val streamKey: String,
+    @Value("\${spring.redis.stream.snippet.key}") private val streamKey: String,
     private val redis: RedisTemplate<String, String>,
 ) {
 
