@@ -1,4 +1,4 @@
-package api.dtos
+package snippet.dtos
 
 import java.time.LocalDateTime
 

@@ -1,8 +1,8 @@
-package services
+package snippet.services
 
-import dtos.SnippetRequestDTO
-import dtos.SnippetResponseDTO
-import dtos.UpdateSnippetDTO
+import snippet.dtos.SnippetRequestDTO
+import snippet.dtos.SnippetResponseDTO
+import snippet.dtos.UpdateSnippetDTO
 
 interface SnippetService {
     fun createSnippet(

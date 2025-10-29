@@ -1,17 +1,16 @@
-package services
+package snippet.services
 
-import SnippetEventProducer
-
-import component.AssetServiceClient
-import dtos.SnippetRequestDTO
-import dtos.UpdateSnippetDTO
-import dtos.SnippetResponseDTO
-import entities.Snippet
+import events.SnippetEventProducer
 import events.SnippetOperation
 import events.SnippetEvent
-import repositories.SnippetRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import snippet.component.AssetServiceClient
+import snippet.dtos.SnippetRequestDTO
+import snippet.dtos.SnippetResponseDTO
+import snippet.dtos.UpdateSnippetDTO
+import snippet.entities.Snippet
+import snippet.repositories.SnippetRepository
 
 @Service
 class SnippetServiceImpl(

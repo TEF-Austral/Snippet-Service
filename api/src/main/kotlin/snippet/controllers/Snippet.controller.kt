@@ -1,8 +1,8 @@
-package controllers
+package snippet.controllers
 
-import dtos.SnippetRequestDTO
-import dtos.SnippetResponseDTO
-import dtos.UpdateSnippetDTO
+import snippet.dtos.SnippetRequestDTO
+import snippet.dtos.SnippetResponseDTO
+import snippet.dtos.UpdateSnippetDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import security.AuthenticatedUserProvider
-import services.SnippetService
+import snippet.security.AuthenticatedUserProvider
+import snippet.services.SnippetService
 
 @RestController
 @RequestMapping("/snippets")

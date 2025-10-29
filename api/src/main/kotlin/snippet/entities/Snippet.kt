@@ -1,4 +1,4 @@
-package entities
+package snippet.entities
 
 import common.Language
 import jakarta.persistence.Column
