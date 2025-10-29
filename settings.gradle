@@ -15,3 +15,5 @@ plugins {
 rootProject.name = 'snippet-service'
 
 include 'api'
+include 'events'
+include 'common'

@@ -14,7 +14,7 @@ jobs:
   versioning:
     uses: ./.github/workflows/versioning.yml
     with:
-      commit_version: false  # No commitear en DEV
+      commit_version: false
     secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
@@ -38,6 +38,10 @@ jobs:
       # ========== BUILD GRADLE ==========
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
 
       # ========== BUILD & PUSH DOCKER ==========
       - name: Set image name
@@ -56,8 +60,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.dev
+          file: ./Dockerfile
           push: true
+          build-args: |
+            GITHUB_ACTOR=${{ github.actor }}
+            REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:dev
             ${{ steps.image.outputs.name }}:dev-${{ needs.versioning.outputs.version }}

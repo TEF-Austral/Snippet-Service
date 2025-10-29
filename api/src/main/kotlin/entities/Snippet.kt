@@ -1,5 +1,6 @@
 package entities
 
+import common.Language
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -40,7 +41,7 @@ data class Snippet(
     @Column(name = "language", nullable = false, length = 50)
     var language: Language,
     @Column(name = "version", length = 50)
-    var version: String? = null,
+    var version: String,
 ) {
     @PrePersist
     fun ensureBucketKey() {
