@@ -1,5 +1,4 @@
-package events
-
+import events.SnippetEvent
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.connection.stream.StreamRecords
 import org.springframework.data.redis.core.RedisTemplate
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Component
 @Component
 class SnippetEventProducer(
     @Value("\${redis.stream.snippet.key}") private val streamKey: String,
+    // RedisTemplate stores stringified records for the stream
     private val redis: RedisTemplate<String, String>,
 ) {
 
@@ -22,8 +22,9 @@ class SnippetEventProducer(
                 .withStreamKey(streamKey)
 
         val id =
+            // Using opsForStream with <String, String> and adding the record object which will be serialized
             redis
-                .opsForStream<String, SnippetEvent>()
+                .opsForStream<String, String>()
                 .add(record)
 
         return id?.toString()

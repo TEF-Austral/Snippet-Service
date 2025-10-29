@@ -1,13 +1,14 @@
 package services
 
-import events.SnippetEvent
-import events.SnippetEventProducer
-import events.SnippetOperation
+import SnippetEventProducer
+
 import component.AssetServiceClient
 import dtos.SnippetRequestDTO
 import dtos.UpdateSnippetDTO
 import dtos.SnippetResponseDTO
 import entities.Snippet
+import events.SnippetOperation
+import events.SnippetEvent
 import repositories.SnippetRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -106,7 +107,6 @@ class SnippetServiceImpl(
 
         val saved = repository.save(existing)
 
-        // Emitir evento
         eventProducer.publishSnippetEvent(
             SnippetEvent(
                 snippetId = saved.id!!,

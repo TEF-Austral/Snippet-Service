@@ -1,6 +1,6 @@
 package dtos
 
-import Language
+import common.Language
 
 data class SnippetResponseDTO(
     val snippetId: Long?,
