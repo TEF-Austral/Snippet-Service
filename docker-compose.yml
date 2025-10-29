@@ -3,7 +3,7 @@ services:
     container_name: "snippet-service-api"
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         GITHUB_ACTOR: ${GITHUB_ACTOR}
         REDIS_TOKEN: ${REDIS_TOKEN}
