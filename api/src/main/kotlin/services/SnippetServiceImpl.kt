@@ -1,6 +1,7 @@
 package services
 
 import component.AssetServiceClient
+import security.AuthorizationServiceClient
 import dtos.SnippetRequestDTO
 import dtos.UpdateSnippetDTO
 import dtos.SnippetResponseDTO
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetServiceClient,
+    private val authorizationServiceClient: AuthorizationServiceClient,
 ) : SnippetService {
 
     override fun createSnippet(
@@ -23,7 +25,7 @@ class SnippetServiceImpl(
             Snippet(
                 name = requestDTO.name,
                 description = requestDTO.description,
-                ownerId = ownerId, // Asignar desde el token
+                ownerId = ownerId,
                 bucketContainer = "snippets",
                 language = requestDTO.language,
                 version = requestDTO.version,
@@ -41,16 +43,40 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar que el requester es el owner
-        if (entity.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                snippetId = id.toString(),
+                action = "read",
+                ownerId = entity.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to access this snippet")
         }
 
         return entity.toDto()
     }
 
-    override fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO> =
-        repository.findByOwnerId(ownerId).map { it.toDto() }
+    override fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO> {
+        val ownedSnippets = repository.findByOwnerId(ownerId)
+
+        val sharedSnippetIds = authorizationServiceClient.getUserSnippetIds(ownerId)
+
+        val sharedSnippets =
+            sharedSnippetIds
+                .mapNotNull { snippetId ->
+                    try {
+                        snippetId.toLongOrNull()?.let { repository.findById(it).orElse(null) }
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+
+        val allSnippets = (ownedSnippets + sharedSnippets).distinctBy { it.id }
+
+        return allSnippets.map { it.toDto() }
+    }
 
     @Transactional
     override fun updateSnippet(
@@ -63,8 +89,15 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar ownership
-        if (existing.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                snippetId = id.toString(),
+                action = "edit",
+                ownerId = existing.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
@@ -97,8 +130,15 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar ownership
-        if (existing.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                snippetId = id.toString(),
+                action = "delete",
+                ownerId = existing.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
 
