@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
 data class CreateSnippetDTO(
-    val content: String = "",
+    val content: String? = "",
     @field:NotBlank(message = "Name is required")
     val name: String,
     @field:NotBlank(message = "Description is required")

@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import snippet.dtos.CreateSnippetDTO
 import snippet.security.AuthenticatedUserProvider
 import snippet.services.SnippetService
@@ -27,6 +29,8 @@ class SnippetController(
     @PostMapping("/")
     fun createSnippet(
         @Valid @RequestBody requestDTO: CreateSnippetDTO,
+        @RequestPart(name = "file", required = false) file: MultipartFile,
+        @RequestPart(name = "content", required = false) content: String,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val created = service.createSnippet(requestDTO, userId)
