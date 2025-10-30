@@ -1,5 +1,6 @@
 package snippet.controllers
 
+import common.Language
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 import jakarta.validation.Valid
@@ -26,13 +27,34 @@ class SnippetController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
-    @PostMapping("/")
+    @PostMapping("/", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun createSnippet(
-        @Valid @RequestBody requestDTO: CreateSnippetDTO,
-        @RequestPart(name = "file", required = false) file: MultipartFile,
-        @RequestPart(name = "content", required = false) content: String,
+        @RequestPart("name") name: String,
+        @RequestPart("description") description: String,
+        @RequestPart("language") language: String,
+        @RequestPart("version") version: String,
+        @RequestPart(name = "content", required = false) content: String?,
+        @RequestPart(name = "file", required = false) file: MultipartFile?,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+
+        // Priorizar archivo sobre content text
+        val finalContent =
+            when {
+                file != null -> String(file.bytes, Charsets.UTF_8)
+                content != null -> content
+                else -> ""
+            }
+
+        val requestDTO =
+            CreateSnippetDTO(
+                name = name,
+                description = description,
+                language = Language.valueOf(language.uppercase()),
+                version = version,
+                content = finalContent,
+            )
+
         val created = service.createSnippet(requestDTO, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
