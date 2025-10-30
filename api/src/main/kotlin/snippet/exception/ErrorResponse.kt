@@ -1,4 +1,4 @@
-package exception
+package snippet.exception
 
 data class ErrorResponse(
     val status: Int,

@@ -1,4 +1,4 @@
-package dtos
+package snippet.dtos
 
 import common.Language
 

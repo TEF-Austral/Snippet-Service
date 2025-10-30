@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import kotlin.test.assertEquals
+import snippet.exception.GlobalExceptionHandler
 
 class GlobalExceptionHandlerTest {
 

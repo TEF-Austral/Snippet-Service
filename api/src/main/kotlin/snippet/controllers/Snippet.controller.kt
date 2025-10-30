@@ -1,8 +1,7 @@
-package controllers
+package snippet.controllers
 
-import dtos.SnippetRequestDTO
-import dtos.SnippetResponseDTO
-import dtos.UpdateSnippetDTO
+import snippet.dtos.SnippetResponseDTO
+import snippet.dtos.UpdateSnippetDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,8 +13,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import security.AuthenticatedUserProvider
-import services.SnippetService
+import snippet.dtos.CreateSnippetDTO
+import snippet.security.AuthenticatedUserProvider
+import snippet.services.SnippetService
 
 @RestController
 @RequestMapping("/snippets")
@@ -24,9 +24,9 @@ class SnippetController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
-    @PostMapping("")
+    @PostMapping("/")
     fun createSnippet(
-        @Valid @RequestBody requestDTO: SnippetRequestDTO,
+        @Valid @RequestBody requestDTO: CreateSnippetDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val created = service.createSnippet(requestDTO, userId)
@@ -61,7 +61,7 @@ class SnippetController(
         return ResponseEntity.ok(snippet)
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     fun getMySnippets(): ResponseEntity<List<SnippetResponseDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val snippets = service.getOwnerSnippets(userId)

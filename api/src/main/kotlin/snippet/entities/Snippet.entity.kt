@@ -1,4 +1,4 @@
-package entities
+package snippet.entities
 
 import common.Language
 import jakarta.persistence.Column
@@ -19,7 +19,7 @@ import java.util.UUID
     indexes = [
         Index(name = "idx_bucket_key", columnList = "bucket_key"),
         Index(name = "idx_language", columnList = "language"),
-        Index(name = "idx_owner_id", columnList = "owner_id"), // Nuevo índice
+        Index(name = "idx_owner_id", columnList = "owner_id"),
     ],
 )
 data class Snippet(

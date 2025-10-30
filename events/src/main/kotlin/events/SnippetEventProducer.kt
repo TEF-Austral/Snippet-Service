@@ -1,4 +1,5 @@
-import events.SnippetEvent
+package events
+
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.connection.stream.StreamRecords
 import org.springframework.data.redis.core.RedisTemplate
@@ -6,8 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class SnippetEventProducer(
-    @Value("\${redis.stream.snippet.key}") private val streamKey: String,
-    // RedisTemplate stores stringified records for the stream
+    @Value("\${spring.redis.stream.snippet.key}") private val streamKey: String,
     private val redis: RedisTemplate<String, String>,
 ) {
 
