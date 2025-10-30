@@ -14,10 +14,10 @@ class FileTypeController {
     fun getFileTypes(): ResponseEntity<List<FileTypeDTO>> {
         val fileTypes =
             listOf(
-                FileTypeDTO("printscript", "prs"),
-                FileTypeDTO("java", "java"),
-                FileTypeDTO("python", "py"),
-                FileTypeDTO("golang", "go"),
+                FileTypeDTO("PRINTSCRIPT", "prs"),
+                FileTypeDTO("JAVA", "java"),
+                FileTypeDTO("PYTHON", "py"),
+                FileTypeDTO("GOLANG", "go"),
             )
         return ResponseEntity.ok(fileTypes)
     }
