@@ -42,6 +42,8 @@ data class Snippet(
     var language: Language,
     @Column(name = "version", length = 50)
     var version: String,
+    @Column(name = "author")
+    var author: String,
 ) {
     @PrePersist
     fun ensureBucketKey() {

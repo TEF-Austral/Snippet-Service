@@ -10,4 +10,5 @@ data class SnippetResponseDTO(
     val bucketContainer: String,
     val language: Language,
     val version: String?,
+    val author: String,
 )

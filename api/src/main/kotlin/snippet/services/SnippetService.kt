@@ -8,6 +8,7 @@ interface SnippetService {
     fun createSnippet(
         requestDTO: CreateSnippetDTO,
         ownerId: String,
+        author: String,
     ): SnippetResponseDTO
 
     fun getSnippetById(

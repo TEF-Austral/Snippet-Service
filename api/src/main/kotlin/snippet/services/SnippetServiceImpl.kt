@@ -23,6 +23,7 @@ class SnippetServiceImpl(
     override fun createSnippet(
         requestDTO: CreateSnippetDTO,
         ownerId: String,
+        author: String,
     ): SnippetResponseDTO {
         val entity =
             Snippet(
@@ -32,6 +33,7 @@ class SnippetServiceImpl(
                 bucketContainer = "snippets",
                 language = requestDTO.language,
                 version = requestDTO.version,
+                author = author,
             )
 
         val saved = repository.save(entity)
@@ -152,5 +154,6 @@ class SnippetServiceImpl(
             bucketKey = this.bucketKey ?: "",
             language = this.language,
             version = this.version,
+            author = this.author,
         )
 }

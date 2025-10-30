@@ -30,7 +30,8 @@ class SnippetController(
         @Valid @RequestBody requestDTO: CreateSnippetDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val created = service.createSnippet(requestDTO, userId)
+        val author = authenticatedUserProvider.getCurrentUserName() ?: "Unknown"
+        val created = service.createSnippet(requestDTO, userId, author)
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
 
