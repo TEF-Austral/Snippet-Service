@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile
 import snippet.dtos.CreateSnippetDTO
 import snippet.security.AuthenticatedUserProvider
 import snippet.services.SnippetService
+import org.springframework.http.MediaType
 
 @RestController
 @RequestMapping("/snippets")
@@ -38,7 +39,6 @@ class SnippetController(
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
-        // Priorizar archivo sobre content text
         val finalContent =
             when {
                 file != null -> String(file.bytes, Charsets.UTF_8)
