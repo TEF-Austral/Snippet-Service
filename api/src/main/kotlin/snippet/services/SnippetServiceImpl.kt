@@ -41,7 +41,7 @@ class SnippetServiceImpl(
         assetServiceClient.createOrUpdateAsset(
             container = saved.bucketContainer,
             key = bucketKey,
-            content = requestDTO.content,
+            content = requestDTO.content ?: "",
         )
 
         return saved.toDto()
