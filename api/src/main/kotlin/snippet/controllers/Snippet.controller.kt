@@ -25,7 +25,7 @@ class SnippetController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
-    @PostMapping("/")
+    @PostMapping("")
     fun createSnippet(
         @Valid @RequestBody requestDTO: CreateSnippetDTO,
     ): ResponseEntity<SnippetResponseDTO> {
@@ -62,7 +62,7 @@ class SnippetController(
         return ResponseEntity.ok(snippet)
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     fun getMySnippets(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") pageSize: Int,
