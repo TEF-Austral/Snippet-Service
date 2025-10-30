@@ -1,6 +1,8 @@
 package snippet.services
 
 import events.SnippetEventProducer
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
@@ -64,8 +66,21 @@ class SnippetServiceImpl(
         return entity.toDto()
     }
 
-    override fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO> =
-        repository.findByOwnerId(ownerId).map { it.toDto() }
+    override fun getOwnerSnippets(
+        ownerId: String,
+        page: Int,
+        pageSize: Int,
+    ): List<SnippetResponseDTO> {
+        val safePage = if (page < 0) 0 else page
+        val safeSize = if (pageSize <= 0) 20 else pageSize
+
+        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
+
+        return repository
+            .findByOwnerId(ownerId, pageable)
+            .map { it.toDto() }
+            .content
+    }
 
     @Transactional
     override fun updateSnippet(
@@ -87,9 +102,7 @@ class SnippetServiceImpl(
         requestDTO.language?.let { existing.language = it }
         requestDTO.version?.let { existing.version = it }
 
-        var updatedContent: String? = null
         requestDTO.content?.let { content ->
-            updatedContent = content
             assetServiceClient.createOrUpdateAsset(
                 container = existing.bucketContainer,
                 key =

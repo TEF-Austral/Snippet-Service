@@ -26,5 +26,9 @@ interface SnippetService {
         requesterId: String,
     )
 
-    fun getOwnerSnippets(ownerId: String): List<SnippetResponseDTO>
+    fun getOwnerSnippets(
+        ownerId: String,
+        page: Int,
+        pageSize: Int,
+    ): List<SnippetResponseDTO>
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.dtos.CreateSnippetDTO
 import snippet.security.AuthenticatedUserProvider
@@ -62,9 +63,12 @@ class SnippetController(
     }
 
     @GetMapping("/")
-    fun getMySnippets(): ResponseEntity<List<SnippetResponseDTO>> {
+    fun getMySnippets(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") pageSize: Int,
+    ): ResponseEntity<List<SnippetResponseDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val snippets = service.getOwnerSnippets(userId)
+        val snippets = service.getOwnerSnippets(userId, page, pageSize)
         return ResponseEntity.ok(snippets)
     }
 }
