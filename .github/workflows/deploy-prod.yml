@@ -10,16 +10,9 @@ permissions:
   packages: write
 
 jobs:
-  # ========== VERSIONING ==========
-  versioning:
-    uses: ./.github/workflows/versioning.yml
-    with:
-      commit_version: true
-    secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
   build-and-deploy-prod:
-    needs: versioning
     runs-on: ubuntu-latest
     environment: production
 
