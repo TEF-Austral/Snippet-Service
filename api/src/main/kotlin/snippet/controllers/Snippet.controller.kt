@@ -1,6 +1,5 @@
 package snippet.controllers
 
-import common.Language
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 import jakarta.validation.Valid
@@ -13,13 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
 import snippet.dtos.CreateSnippetDTO
 import snippet.security.AuthenticatedUserProvider
 import snippet.services.SnippetService
-import org.springframework.http.MediaType
 
 @RestController
 @RequestMapping("/snippets")
@@ -28,33 +24,11 @@ class SnippetController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
-    @PostMapping("/", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/")
     fun createSnippet(
-        @RequestPart("name") name: String,
-        @RequestPart("description") description: String,
-        @RequestPart("language") language: String,
-        @RequestPart("version") version: String,
-        @RequestPart(name = "content", required = false) content: String?,
-        @RequestPart(name = "file", required = false) file: MultipartFile?,
+        @Valid @RequestBody requestDTO: CreateSnippetDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-
-        val finalContent =
-            when {
-                file != null -> String(file.bytes, Charsets.UTF_8)
-                content != null -> content
-                else -> ""
-            }
-
-        val requestDTO =
-            CreateSnippetDTO(
-                name = name,
-                description = description,
-                language = Language.valueOf(language.uppercase()),
-                version = version,
-                content = finalContent,
-            )
-
         val created = service.createSnippet(requestDTO, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
