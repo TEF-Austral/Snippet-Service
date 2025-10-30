@@ -1,12 +1,10 @@
 package snippet.services
 
 import events.SnippetEventProducer
-import events.SnippetOperation
-import events.SnippetEvent
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
-import snippet.dtos.SnippetRequestDTO
+import snippet.dtos.CreateSnippetDTO
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 import snippet.entities.Snippet
@@ -19,8 +17,9 @@ class SnippetServiceImpl(
     private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
+    @Transactional
     override fun createSnippet(
-        requestDTO: SnippetRequestDTO,
+        requestDTO: CreateSnippetDTO,
         ownerId: String,
     ): SnippetResponseDTO {
         val entity =
@@ -32,21 +31,17 @@ class SnippetServiceImpl(
                 language = requestDTO.language,
                 version = requestDTO.version,
             )
+
         val saved = repository.save(entity)
 
-        // Emitir evento
-        eventProducer.publishSnippetEvent(
-            SnippetEvent(
-                snippetId = saved.id!!,
-                bucketId = saved.bucketContainer,
-                bucketContainer = saved.bucketContainer,
-                ownerId = saved.ownerId,
-                name = saved.name,
-                content = null,
-                language = saved.language,
-                version = saved.version,
-                operation = SnippetOperation.CREATE,
-            ),
+        val bucketKey =
+            saved.bucketKey
+                ?: throw IllegalStateException("Snippet was saved but has no bucket key")
+
+        assetServiceClient.createOrUpdateAsset(
+            container = saved.bucketContainer,
+            key = bucketKey,
+            content = requestDTO.content,
         )
 
         return saved.toDto()
@@ -87,38 +82,25 @@ class SnippetServiceImpl(
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
-        var content: String? = null
-        requestDTO.content?.let { newContent ->
-            content = newContent
+        requestDTO.name?.let { existing.name = it }
+        requestDTO.description?.let { existing.description = it }
+        requestDTO.language?.let { existing.language = it }
+        requestDTO.version?.let { existing.version = it }
+
+        var updatedContent: String? = null
+        requestDTO.content?.let { content ->
+            updatedContent = content
             assetServiceClient.createOrUpdateAsset(
                 container = existing.bucketContainer,
                 key =
-                    existing.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
-                content = newContent,
+                    existing.bucketKey ?: throw IllegalStateException(
+                        "Snippet has no bucket key",
+                    ),
+                content = content,
             )
         }
 
-        existing.name = requestDTO.name ?: existing.name
-        existing.description = requestDTO.description ?: existing.description
-        existing.language = requestDTO.language ?: existing.language
-        existing.version = requestDTO.version ?: existing.version
-
         val saved = repository.save(existing)
-
-        eventProducer.publishSnippetEvent(
-            SnippetEvent(
-                snippetId = saved.id!!,
-                bucketId = saved.bucketContainer,
-                bucketContainer = saved.bucketContainer,
-                ownerId = saved.ownerId,
-                name = saved.name,
-                content = content,
-                language = saved.language,
-                version = saved.version,
-                operation = SnippetOperation.UPDATE,
-            ),
-        )
 
         return saved.toDto()
     }
@@ -137,29 +119,15 @@ class SnippetServiceImpl(
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
 
+        val bucketKey =
+            existing.bucketKey ?: throw IllegalStateException("Snippet has no bucket key")
+
         assetServiceClient.deleteAsset(
             container = existing.bucketContainer,
-            key =
-                existing.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+            key = bucketKey,
         )
 
         repository.deleteById(id)
-
-        // Emitir evento
-        eventProducer.publishSnippetEvent(
-            SnippetEvent(
-                snippetId = existing.id!!,
-                bucketId = existing.bucketContainer,
-                bucketContainer = existing.bucketContainer,
-                ownerId = existing.ownerId,
-                name = existing.name,
-                content = null,
-                language = existing.language,
-                version = existing.version,
-                operation = SnippetOperation.DELETE,
-            ),
-        )
     }
 
     private fun Snippet.toDto() =
