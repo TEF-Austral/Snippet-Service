@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
 import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 import snippet.entities.Snippet
@@ -72,16 +73,20 @@ class SnippetServiceImpl(
         ownerId: String,
         page: Int,
         pageSize: Int,
-    ): List<SnippetResponseDTO> {
+    ): PaginatedSnippetsDTO {
         val safePage = if (page < 0) 0 else page
         val safeSize = if (pageSize <= 0) 20 else pageSize
 
         val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
 
-        return repository
-            .findByOwnerId(ownerId, pageable)
-            .map { it.toDto() }
-            .content
+        val pageResult = repository.findByOwnerId(ownerId, pageable)
+
+        return PaginatedSnippetsDTO(
+            page = pageResult.number,
+            pageSize = pageResult.size,
+            count = pageResult.totalElements,
+            snippets = pageResult.content.map { it.toDto() },
+        )
     }
 
     @Transactional

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.PaginatedSnippetsDTO
 import snippet.security.AuthenticatedUserProvider
 import snippet.services.SnippetService
 
@@ -67,9 +68,9 @@ class SnippetController(
     fun getMySnippets(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") pageSize: Int,
-    ): ResponseEntity<List<SnippetResponseDTO>> {
+    ): ResponseEntity<PaginatedSnippetsDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val snippets = service.getOwnerSnippets(userId, page, pageSize)
-        return ResponseEntity.ok(snippets)
+        val result = service.getOwnerSnippets(userId, page, pageSize)
+        return ResponseEntity.ok(result)
     }
 }

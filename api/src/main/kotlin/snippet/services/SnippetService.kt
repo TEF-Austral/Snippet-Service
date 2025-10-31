@@ -1,6 +1,7 @@
 package snippet.services
 
 import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 
@@ -31,5 +32,5 @@ interface SnippetService {
         ownerId: String,
         page: Int,
         pageSize: Int,
-    ): List<SnippetResponseDTO>
+    ): PaginatedSnippetsDTO
 }
