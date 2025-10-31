@@ -31,7 +31,7 @@ class AuthenticatedUserProvider {
     fun getCurrentUserName(): String? {
         val authentication: Authentication? = SecurityContextHolder.getContext().authentication
         val jwt = authentication?.principal as? Jwt
-        return jwt?.getClaim<String>("name")
+        return jwt?.getClaim<String>("username")
     }
 
     fun getAllClaims(): Map<String, Any> {
