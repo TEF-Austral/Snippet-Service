@@ -10,16 +10,9 @@ permissions:
   packages: write
 
 jobs:
-  # ========== VERSIONING ==========
-  versioning:
-    uses: ./.github/workflows/publish.yml
-    with:
-      commit_version: true
-    secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
   build-and-deploy-prod:
-    needs: versioning
     runs-on: ubuntu-latest
     environment: production
 
@@ -40,12 +33,17 @@ jobs:
       # ========== BUILD GRADLE ========== #
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
 
       - name: Publish Gradle package
         run: ./gradlew publish --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
 
       - name: Debug info
         run: |
@@ -70,8 +68,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.prod.prod
+          file: ./Dockerfile.prod
           push: true
+          build-args: |
+            GITHUB_ACTOR=${{ github.actor }}
+            REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:${{ needs.versioning.outputs.version }}

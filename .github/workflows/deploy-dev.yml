@@ -12,7 +12,7 @@ permissions:
 jobs:
   # ========== VERSIONING ==========
   versioning:
-    uses: ./.github/workflows/publish.yml
+    uses: ./.github/workflows/versioning.yml
     with:
       commit_version: false
     secrets: inherit
@@ -38,6 +38,12 @@ jobs:
       # ========== BUILD GRADLE ==========
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
+          AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
+          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
 
       # ========== BUILD & PUSH DOCKER ==========
       - name: Set image name
@@ -56,8 +62,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.prod.dev
+          file: ./Dockerfile.dev
           push: true
+          build-args: |
+            GITHUB_ACTOR=${{ github.actor }}
+            REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:dev
             ${{ steps.image.outputs.name }}:dev-${{ needs.versioning.outputs.version }}
