@@ -150,10 +150,9 @@ class SnippetServiceImpl(
             snippetId = this.id ?: 0L,
             name = this.name,
             description = this.description,
-            bucketContainer = this.bucketContainer,
-            bucketKey = this.bucketKey ?: "",
             language = this.language,
             version = this.version,
             author = this.author,
+            content = assetServiceClient.getAsset(this.bucketContainer, this.bucketKey!!),
         )
 }
