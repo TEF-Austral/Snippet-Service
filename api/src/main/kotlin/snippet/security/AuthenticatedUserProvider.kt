@@ -28,11 +28,17 @@ class AuthenticatedUserProvider {
         return jwt?.getClaim<String>("email")
     }
 
-    fun getCurrentUserName(): String {
+//    fun getCurrentUserName(): String {
+//        val authentication: Authentication? = SecurityContextHolder.getContext().authentication
+//        val jwt = authentication?.principal as? Jwt
+//        return jwt?.getClaim("username")
+//            ?: throw IllegalStateException("Username not found in token")
+//    }
+
+    fun getCurrentUserName(): String? {
         val authentication: Authentication? = SecurityContextHolder.getContext().authentication
         val jwt = authentication?.principal as? Jwt
-        return jwt?.getClaim("username")
-            ?: throw IllegalStateException("Username not found in token")
+        return jwt?.getClaim<String>("username")
     }
 
     fun getAllClaims(): Map<String, Any> {
