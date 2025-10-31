@@ -31,7 +31,7 @@ class SnippetController(
         @Valid @RequestBody requestDTO: CreateSnippetDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val author = authenticatedUserProvider.getCurrentUserName() ?: "Unknown"
+        val author = authenticatedUserProvider.getCurrentUserName()
         val created = service.createSnippet(requestDTO, userId, author)
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
@@ -41,7 +41,7 @@ class SnippetController(
         @PathVariable id: Long,
     ): ResponseEntity<Unit> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        service.deleteSnippet(id, userId) // Validar ownership
+        service.deleteSnippet(id, userId)
         return ResponseEntity.noContent().build()
     }
 

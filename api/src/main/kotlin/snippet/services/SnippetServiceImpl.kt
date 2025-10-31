@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
+import snippet.component.AuthorizationServiceClient
 import snippet.dtos.CreateSnippetDTO
 import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetResponseDTO
@@ -17,6 +18,7 @@ import snippet.repositories.SnippetRepository
 class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetServiceClient,
+    private val authorizationServiceClient: AuthorizationServiceClient,
     private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
@@ -61,8 +63,15 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        // Validar que el requester es el owner, TODO esto hay que cambiarlo luego
-        if (entity.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                action = "read",
+                snippetId = id.toString(),
+                ownerId = entity.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to access this snippet")
         }
 
@@ -100,7 +109,15 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        if (existing.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                action = "edit",
+                snippetId = id.toString(),
+                ownerId = existing.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
@@ -135,7 +152,15 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        if (existing.ownerId != requesterId) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                action = "delete",
+                snippetId = id.toString(),
+                ownerId = existing.ownerId,
+            )
+
+        if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
 
