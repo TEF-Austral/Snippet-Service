@@ -1,48 +1,95 @@
 package snippet.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpRequest
+import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
-
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
+import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentialsGrantRequest
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository
+import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse
+import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
 
 @Configuration
 class M2MClientConfig {
+
+    @Value("\${auth0.audience}")
+    private lateinit var audience: String
 
     @Bean
     fun m2mAuthorizedClientManager(
         clientRegistrationRepository: ClientRegistrationRepository,
         authorizedClientRepository: OAuth2AuthorizedClientRepository,
     ): OAuth2AuthorizedClientManager {
+        // Crear un cliente personalizado para agregar el parámetro audience
+        val accessTokenResponseClient =
+            OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> { grantRequest ->
+                val restTemplate = RestTemplate()
+
+                val parameters = LinkedMultiValueMap<String, String>()
+                parameters.add("grant_type", "client_credentials")
+                parameters.add("audience", audience)
+
+                val headers = HttpHeaders()
+                headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+                headers.setBasicAuth(
+                    grantRequest.clientRegistration.clientId,
+                    grantRequest.clientRegistration.clientSecret,
+                )
+
+                val request = org.springframework.http.HttpEntity(parameters, headers)
+                val response =
+                    restTemplate.postForEntity(
+                        grantRequest.clientRegistration.providerDetails.tokenUri,
+                        request,
+                        Map::class.java,
+                    )
+
+                val responseBody =
+                    response.body ?: throw OAuth2AuthenticationException("Invalid token response")
+                val accessToken =
+                    responseBody["access_token"] as? String
+                        ?: throw OAuth2AuthenticationException("No access token")
+                val expiresIn = (responseBody["expires_in"] as? Number)?.toLong() ?: 3600L
+
+                OAuth2AccessTokenResponse
+                    .withToken(accessToken)
+                    .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                    .expiresIn(expiresIn)
+                    .build()
+            }
+
+        // Configurar el provider con el cliente personalizado
         val authorizedClientProvider =
             OAuth2AuthorizedClientProviderBuilder
                 .builder()
-                .clientCredentials()
-                .build()
+                .clientCredentials { configurer ->
+                    configurer.accessTokenResponseClient(accessTokenResponseClient)
+                }.build()
 
+        // Crear y configurar el manager
         val authorizedClientManager =
             DefaultOAuth2AuthorizedClientManager(
                 clientRegistrationRepository,
                 authorizedClientRepository,
             )
         authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
+
         return authorizedClientManager
     }
 
-    /**
-     * Crea el Bean de RestTemplate que tu AuthorizationServiceClient usará.
-     * Le inyectamos un interceptor que añade el token M2M.
-     */
     @Bean
     fun restTemplate(manager: OAuth2AuthorizedClientManager): RestTemplate {
         val restTemplate = RestTemplate()
@@ -53,33 +100,26 @@ class M2MClientConfig {
                 body: ByteArray,
                 execution: ClientHttpRequestExecution,
                 ->
-
-                // 1. Construye la solicitud para el token M2M
-                // "auth0-m2m" debe coincidir con el nombre en tus properties (SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_AUTH0_M2M_...)
                 val authorizeRequest =
                     OAuth2AuthorizeRequest
                         .withClientRegistrationId("auth0-m2m")
-                        .principal("SnippetServiceM2M") // Un nombre principal genérico
+                        .principal("SnippetServiceM2M")
                         .build()
 
-                // 2. Pide el token al manager (lo cacheará automáticamente)
                 val authorizedClient =
                     manager.authorize(authorizeRequest)
                         ?: throw OAuth2AuthenticationException(
                             "No se pudo autorizar el cliente M2M",
                         )
 
-                // 3. Añade el token a la petición saliente
                 request.headers.add(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${authorizedClient.accessToken.tokenValue}",
                 )
 
-                // 4. Ejecuta la petición
                 execution.execute(request, body)
             }
 
-        // Asigna el interceptor al RestTemplate
         restTemplate.interceptors = listOf(interceptor)
         return restTemplate
     }
