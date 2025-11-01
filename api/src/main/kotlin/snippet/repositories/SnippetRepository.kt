@@ -9,14 +9,8 @@ import snippet.entities.Snippet
 @Repository
 interface SnippetRepository : JpaRepository<Snippet, Long> {
 
-    fun findByBucketKey(bucketKey: String): List<Snippet>
-
-    fun findByOwnerId(
+    fun findByOwnerIdOrIdIn(
         ownerId: String,
-        pageable: Pageable,
-    ): Page<Snippet>
-
-    fun findByIdIn(
         ids: List<Long>,
         pageable: Pageable,
     ): Page<Snippet>

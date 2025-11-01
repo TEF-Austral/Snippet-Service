@@ -94,18 +94,9 @@ class SnippetServiceImpl(
 
         val snippetIds = snippetIdsWithReadPermission.mapNotNull { it.toLongOrNull() }
 
-        if (snippetIds.isEmpty()) {
-            return PaginatedSnippetsDTO(
-                page = safePage,
-                pageSize = safeSize,
-                count = 0,
-                snippets = emptyList(),
-            )
-        }
-
         val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
 
-        val pageResult = repository.findByIdIn(snippetIds, pageable)
+        val pageResult = repository.findByOwnerIdOrIdIn(requesterId, snippetIds, pageable)
 
         return PaginatedSnippetsDTO(
             page = pageResult.number,
