@@ -15,4 +15,9 @@ interface SnippetRepository : JpaRepository<Snippet, Long> {
         ownerId: String,
         pageable: Pageable,
     ): Page<Snippet>
+
+    fun findByIdIn(
+        ids: List<Long>,
+        pageable: Pageable,
+    ): Page<Snippet>
 }

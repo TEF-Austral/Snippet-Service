@@ -70,7 +70,7 @@ class SnippetController(
         @RequestParam(defaultValue = "10") pageSize: Int,
     ): ResponseEntity<PaginatedSnippetsDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val result = service.getOwnerSnippets(userId, page, pageSize)
+        val result = service.getMySnippets(userId, page, pageSize)
         return ResponseEntity.ok(result)
     }
 }

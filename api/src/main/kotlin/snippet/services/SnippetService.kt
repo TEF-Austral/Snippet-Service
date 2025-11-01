@@ -28,8 +28,8 @@ interface SnippetService {
         requesterId: String,
     )
 
-    fun getOwnerSnippets(
-        ownerId: String,
+    fun getMySnippets(
+        requesterId: String,
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO

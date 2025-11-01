@@ -146,13 +146,13 @@ class SnippetControllerTest {
             )
 
         `when`(authenticatedUserProvider.getCurrentUserId()).thenReturn(userId)
-        `when`(service.getOwnerSnippets(userId, 0, 10)).thenReturn(paginatedDTO)
+        `when`(service.getMySnippets(userId, 0, 10)).thenReturn(paginatedDTO)
 
         val response = controller.getMySnippets(0, 10)
 
         assertEquals(HttpStatus.OK, response.statusCode)
         assertEquals(paginatedDTO, response.body)
-        verify(service).getOwnerSnippets(userId, 0, 10)
+        verify(service).getMySnippets(userId, 0, 10)
     }
 
     @Test
@@ -169,7 +169,7 @@ class SnippetControllerTest {
             )
 
         `when`(authenticatedUserProvider.getCurrentUserId()).thenReturn(userId)
-        `when`(service.getOwnerSnippets(userId, page, pageSize)).thenReturn(paginatedDTO)
+        `when`(service.getMySnippets(userId, page, pageSize)).thenReturn(paginatedDTO)
 
         val response = controller.getMySnippets(page, pageSize)
 

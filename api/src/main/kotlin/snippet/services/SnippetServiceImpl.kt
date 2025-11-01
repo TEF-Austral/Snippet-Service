@@ -78,17 +78,34 @@ class SnippetServiceImpl(
         return entity.toDto()
     }
 
-    override fun getOwnerSnippets(
-        ownerId: String,
+    override fun getMySnippets(
+        requesterId: String,
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO {
         val safePage = if (page < 0) 0 else page
         val safeSize = if (pageSize <= 0) 20 else pageSize
 
+        val snippetIdsWithReadPermission =
+            authorizationServiceClient.getSnippetsByPermission(
+                userId = requesterId,
+                permission = "read",
+            )
+
+        val snippetIds = snippetIdsWithReadPermission.mapNotNull { it.toLongOrNull() }
+
+        if (snippetIds.isEmpty()) {
+            return PaginatedSnippetsDTO(
+                page = safePage,
+                pageSize = safeSize,
+                count = 0,
+                snippets = emptyList(),
+            )
+        }
+
         val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
 
-        val pageResult = repository.findByOwnerId(ownerId, pageable)
+        val pageResult = repository.findByIdIn(snippetIds, pageable)
 
         return PaginatedSnippetsDTO(
             page = pageResult.number,

@@ -149,4 +149,30 @@ class AuthorizationServiceClient(
 
         return response.body?.toList() ?: emptyList()
     }
+
+    fun getSnippetsByPermission(
+        userId: String,
+        permission: String,
+    ): List<String> {
+        val url =
+            "$authorizationServiceUrl/api/authorization/snippets/" +
+                "by-permission?userId=$userId&permission=$permission"
+
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+
+        val request = HttpEntity<Void>(headers)
+
+        val response =
+            restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                Array<String>::class.java,
+            )
+
+        return response.body?.toList() ?: emptyList()
+    }
 }
