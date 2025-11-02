@@ -2,6 +2,7 @@ package snippet.services
 
 import snippet.dtos.CreateSnippetDTO
 import snippet.dtos.PaginatedSnippetsDTO
+import snippet.dtos.SnippetFilterDTO
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 
@@ -28,9 +29,28 @@ interface SnippetService {
         requesterId: String,
     )
 
+    fun getSnippetsThatUserHaveAcces(
+        requesterId: String,
+        page: Int,
+        pageSize: Int,
+    ): PaginatedSnippetsDTO
+
+    fun getSnippetThatUserIsOwner(
+        requesterId: String,
+        page: Int,
+        pageSize: Int,
+    ): PaginatedSnippetsDTO
+
+    fun getAllMySnippets(
+        requesterId: String,
+        page: Int,
+        pageSize: Int,
+    ): PaginatedSnippetsDTO
+
     fun getMySnippets(
         requesterId: String,
         page: Int,
         pageSize: Int,
+        filterDTO: SnippetFilterDTO,
     ): PaginatedSnippetsDTO
 }

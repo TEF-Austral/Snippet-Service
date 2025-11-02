@@ -1,5 +1,6 @@
 package snippet.controllers
 
+import common.Language
 import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.UpdateSnippetDTO
 import jakarta.validation.Valid
@@ -14,8 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import snippet.dtos.ComplianceFilter
 import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.OwnershipFilter
 import snippet.dtos.PaginatedSnippetsDTO
+import snippet.dtos.SnippetFilterDTO
+import snippet.dtos.SortField
+import snippet.dtos.SortOrder
 import snippet.security.AuthenticatedUserProvider
 import snippet.services.SnippetService
 
@@ -68,9 +74,46 @@ class SnippetController(
     fun getMySnippets(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") pageSize: Int,
+        @RequestParam(defaultValue = "ALL") ownership: String,
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) language: Language?,
+        @RequestParam(defaultValue = "ALL") compliance: String,
+        @RequestParam(defaultValue = "NAME") sortBy: String,
+        @RequestParam(defaultValue = "ASC") sortOrder: String,
     ): ResponseEntity<PaginatedSnippetsDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-        val result = service.getMySnippets(userId, page, pageSize)
+
+        val filterDTO =
+            SnippetFilterDTO(
+                ownership =
+                    try {
+                        OwnershipFilter.valueOf(ownership.uppercase())
+                    } catch (e: Exception) {
+                        OwnershipFilter.ALL
+                    },
+                name = name,
+                language = language,
+                compliance =
+                    try {
+                        ComplianceFilter.valueOf(compliance.uppercase())
+                    } catch (e: Exception) {
+                        ComplianceFilter.ALL
+                    },
+                sortBy =
+                    try {
+                        SortField.valueOf(sortBy.uppercase())
+                    } catch (e: Exception) {
+                        SortField.NAME
+                    },
+                sortOrder =
+                    try {
+                        SortOrder.valueOf(sortOrder.uppercase())
+                    } catch (e: Exception) {
+                        SortOrder.ASC
+                    },
+            )
+
+        val result = service.getMySnippets(userId, page, pageSize, filterDTO)
         return ResponseEntity.ok(result)
     }
 }
