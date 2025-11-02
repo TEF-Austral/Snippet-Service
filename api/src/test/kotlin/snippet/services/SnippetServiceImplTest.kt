@@ -11,6 +11,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import snippet.component.AssetServiceClient
 import snippet.component.AuthorizationServiceClient
+import snippet.component.PrintScriptServiceClient
 import snippet.dtos.CreateSnippetDTO
 import snippet.dtos.UpdateSnippetDTO
 import snippet.entities.Snippet
@@ -31,6 +32,9 @@ class SnippetServiceImplTest {
 
     @Mock
     private lateinit var authorizationServiceClient: AuthorizationServiceClient
+
+    @Mock
+    private lateinit var printScriptServiceClient: PrintScriptServiceClient
 
     @Mock
     private lateinit var eventProducer: SnippetEventProducer
@@ -228,7 +232,7 @@ class SnippetServiceImplTest {
         `when`(repository.save(any(Snippet::class.java))).thenReturn(existing)
         `when`(assetServiceClient.getAsset("snippets", "test-key")).thenReturn("new content")
 
-        val result = service.updateSnippet(snippetId, updateDTO, requesterId)
+        service.updateSnippet(snippetId, updateDTO, requesterId)
 
         assertEquals("New Name", existing.name)
         assertEquals("New Desc", existing.description)
@@ -272,7 +276,7 @@ class SnippetServiceImplTest {
         `when`(repository.save(any(Snippet::class.java))).thenReturn(existing)
         `when`(assetServiceClient.getAsset("snippets", "test-key")).thenReturn("content")
 
-        val result = service.updateSnippet(snippetId, updateDTO, requesterId)
+        service.updateSnippet(snippetId, updateDTO, requesterId)
 
         assertEquals("New Name", existing.name)
         assertEquals("Old Desc", existing.description)

@@ -50,6 +50,8 @@ class SnippetDTOTest {
                 language = Language.PYTHON,
                 version = "3.9",
                 author = "John Doe",
+                complianceStatus = "pending",
+                validationErrors = null,
             )
 
         assertEquals(1L, dto.snippetId)
@@ -109,6 +111,8 @@ class SnippetDTOTest {
                     language = Language.PRINTSCRIPT,
                     version = "1.0",
                     author = "Author 1",
+                    complianceStatus = "pending",
+                    validationErrors = null,
                 ),
                 SnippetResponseDTO(
                     snippetId = 2L,
@@ -118,6 +122,8 @@ class SnippetDTOTest {
                     language = Language.JAVA,
                     version = "11",
                     author = "Author 2",
+                    complianceStatus = "pending",
+                    validationErrors = null,
                 ),
             )
 
