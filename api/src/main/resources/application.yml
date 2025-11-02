@@ -32,9 +32,24 @@ spring:
         jwt:
           issuer-uri: ${AUTH0_ISSUER_URI}
 
+      client:
+        registration:
+          auth0-m2m:
+            client-id: ${SNIPPET_SERVICE_M2M_CLIENT_ID}
+            client-secret: ${SNIPPET_SERVICE_M2M_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope: ${AUTH0_M2M_SCOPE:}
+        provider:
+          auth0-m2m:
+            token-uri: ${AUTH0_ISSUER_URI}oauth/token
+
 authorization:
   service:
     url: ${AUTHORIZATION_SERVICE_URL}
+
+printscript:
+  service:
+    url: ${PRINTSCRIPT_SERVICE_URL:http://printscript-service-api:8080}
 
 auth0:
   audience: ${AUTH0_AUDIENCE}

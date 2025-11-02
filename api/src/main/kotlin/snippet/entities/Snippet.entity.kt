@@ -20,6 +20,7 @@ import java.util.UUID
         Index(name = "idx_bucket_key", columnList = "bucket_key"),
         Index(name = "idx_language", columnList = "language"),
         Index(name = "idx_owner_id", columnList = "owner_id"),
+        Index(name = "idx_compliance", columnList = "compliance_status"),
     ],
 )
 data class Snippet(
@@ -44,6 +45,11 @@ data class Snippet(
     var version: String,
     @Column(name = "author")
     var author: String,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "compliance_status")
+    var complianceStatus: ComplianceStatus = ComplianceStatus.PENDING,
+    @Column(name = "last_validation_error", columnDefinition = "TEXT")
+    var lastValidationError: String? = null,
 ) {
     @PrePersist
     fun ensureBucketKey() {
@@ -51,4 +57,11 @@ data class Snippet(
             bucketKey = UUID.randomUUID().toString()
         }
     }
+}
+
+enum class ComplianceStatus {
+    PENDING,
+    COMPLIANT,
+    NON_COMPLIANT,
+    FAILED,
 }

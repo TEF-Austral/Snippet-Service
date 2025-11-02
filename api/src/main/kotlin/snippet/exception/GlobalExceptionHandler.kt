@@ -91,4 +91,26 @@ class GlobalExceptionHandler {
             )
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
     }
+
+    @ExceptionHandler(HttpClientErrorException.Unauthorized::class)
+    fun handleUnauthorized(
+        ex: HttpClientErrorException.Unauthorized,
+    ): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            ErrorResponse(
+                status = HttpStatus.UNAUTHORIZED.value(),
+                error = "Unauthorized",
+                message = ex.message ?: "Unauthorized",
+            ),
+        )
+
+    @ExceptionHandler(IllegalStateException::class)
+    fun handleConflict(ex: IllegalStateException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ErrorResponse(
+                status = HttpStatus.CONFLICT.value(),
+                error = "Conflict",
+                message = ex.message ?: "Conflict",
+            ),
+        )
 }
