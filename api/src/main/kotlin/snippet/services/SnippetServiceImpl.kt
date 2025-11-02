@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
 import snippet.component.AuthorizationServiceClient
+import snippet.component.PrintScriptServiceClient
 import snippet.dtos.CreateSnippetDTO
 import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetFilterDTO
@@ -15,6 +16,7 @@ import snippet.dtos.SnippetResponseDTO
 import snippet.dtos.SortField
 import snippet.dtos.SortOrder
 import snippet.dtos.UpdateSnippetDTO
+import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
 import snippet.repositories.SnippetSpecifications
@@ -24,6 +26,7 @@ class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetServiceClient,
     private val authorizationServiceClient: AuthorizationServiceClient,
+    private val printScriptServiceClient: PrintScriptServiceClient,
     private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
@@ -42,6 +45,7 @@ class SnippetServiceImpl(
                 language = requestDTO.language,
                 version = requestDTO.version,
                 author = author,
+                complianceStatus = ComplianceStatus.PENDING,
             )
 
         val saved = repository.save(entity)
@@ -50,11 +54,17 @@ class SnippetServiceImpl(
             saved.bucketKey
                 ?: throw IllegalStateException("Snippet was saved but has no bucket key")
 
+        // Guardar contenido en Asset Service
         assetServiceClient.createOrUpdateAsset(
             container = saved.bucketContainer,
             key = bucketKey,
             content = requestDTO.content ?: "",
         )
+
+        // Validar con PrintScript Service
+        validateAndUpdateCompliance(saved, ownerId)
+
+        repository.save(saved)
 
         return saved.toDto()
     }
@@ -92,7 +102,6 @@ class SnippetServiceImpl(
         val safePage = if (page < 0) 0 else page
         val safeSize = if (pageSize <= 0) 20 else pageSize
 
-        // Get shared snippets IDs
         val snippetIdsWithReadPermission =
             authorizationServiceClient.getSnippetsByPermission(
                 userId = requesterId,
@@ -121,12 +130,17 @@ class SnippetServiceImpl(
             }
         }
 
+        // Add compliance filter
+        SnippetSpecifications.complianceFilter(filterDTO.compliance.name)?.let { complianceSpec ->
+            spec = spec.and(complianceSpec)
+        }
+
         // Build sort
         val sortField =
             when (filterDTO.sortBy) {
                 SortField.NAME -> "name"
                 SortField.LANGUAGE -> "language"
-                SortField.COMPLIANCE -> "id"
+                SortField.COMPLIANCE -> "complianceStatus"
             }
 
         val sortDirection =
@@ -137,7 +151,6 @@ class SnippetServiceImpl(
 
         val pageable = PageRequest.of(safePage, safeSize, Sort.by(sortDirection, sortField))
 
-        // Execute query
         val pageResult = repository.findAll(spec, pageable)
 
         return PaginatedSnippetsDTO(
@@ -251,6 +264,9 @@ class SnippetServiceImpl(
                     ),
                 content = content,
             )
+
+            // Re-validar después de actualizar contenido
+            validateAndUpdateCompliance(existing, requesterId)
         }
 
         val saved = repository.save(existing)
@@ -291,6 +307,35 @@ class SnippetServiceImpl(
         repository.deleteById(id)
     }
 
+    private fun validateAndUpdateCompliance(
+        snippet: Snippet,
+        userId: String,
+    ) {
+        try {
+            val validation =
+                printScriptServiceClient.validateSnippet(
+                    container = snippet.bucketContainer,
+                    key = snippet.bucketKey!!,
+                    version = snippet.version,
+                    userId = userId,
+                )
+
+            if (validation.isValid) {
+                snippet.complianceStatus = ComplianceStatus.COMPLIANT
+                snippet.lastValidationError = null
+            } else {
+                snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
+                snippet.lastValidationError =
+                    validation.violations.joinToString("\n") {
+                        "Line ${it.line}, Column ${it.column}: ${it.message}"
+                    }
+            }
+        } catch (e: Exception) {
+            snippet.complianceStatus = ComplianceStatus.FAILED
+            snippet.lastValidationError = "Validation failed: ${e.message}"
+        }
+    }
+
     private fun Snippet.toDto() =
         SnippetResponseDTO(
             snippetId = this.id ?: 0L,
@@ -300,5 +345,7 @@ class SnippetServiceImpl(
             version = this.version,
             author = this.author,
             content = assetServiceClient.getAsset(this.bucketContainer, this.bucketKey!!),
+            complianceStatus = this.complianceStatus.name,
+            validationErrors = this.lastValidationError,
         )
 }

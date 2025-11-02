@@ -47,6 +47,10 @@ authorization:
   service:
     url: ${AUTHORIZATION_SERVICE_URL}
 
+printscript:
+  service:
+    url: ${PRINTSCRIPT_SERVICE_URL:http://printscript-service-api:8080}
+
 auth0:
   audience: ${AUTH0_AUDIENCE}
 

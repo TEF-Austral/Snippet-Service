@@ -3,6 +3,7 @@ package snippet.repositories
 import common.Language
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
+import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 
 object SnippetSpecifications {
@@ -33,6 +34,40 @@ object SnippetSpecifications {
             Specification { root, _, cb ->
                 cb.equal(root.get<Language>("language"), it)
             }
+        }
+
+    fun complianceFilter(compliance: String): Specification<Snippet>? =
+        when (compliance.uppercase()) {
+            "PENDING" ->
+                Specification { root, _, cb ->
+                    cb.equal(
+                        root.get<ComplianceStatus>("complianceStatus"),
+                        ComplianceStatus.PENDING,
+                    )
+                }
+            "FAILED" ->
+                Specification { root, _, cb ->
+                    cb.equal(
+                        root.get<ComplianceStatus>("complianceStatus"),
+                        ComplianceStatus.FAILED,
+                    )
+                }
+            "NON_COMPLIANT" ->
+                Specification { root, _, cb ->
+                    cb.equal(
+                        root.get<ComplianceStatus>("complianceStatus"),
+                        ComplianceStatus.NON_COMPLIANT,
+                    )
+                }
+            "COMPLIANT" ->
+                Specification { root, _, cb ->
+                    cb.equal(
+                        root.get<ComplianceStatus>("complianceStatus"),
+                        ComplianceStatus.COMPLIANT,
+                    )
+                }
+            "ALL" -> null
+            else -> null
         }
 
     fun ownershipFilter(

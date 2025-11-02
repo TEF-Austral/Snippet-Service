@@ -10,4 +10,6 @@ data class SnippetResponseDTO(
     val language: Language,
     val version: String?,
     val author: String,
+    val complianceStatus: String,
+    val validationErrors: String?,
 )
