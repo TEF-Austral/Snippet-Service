@@ -47,8 +47,9 @@ class AnalyzeController(
         val result =
             printScriptServiceClient.validateSnippet(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 userId = userId,
             )
@@ -83,8 +84,9 @@ class AnalyzeController(
         val result =
             printScriptServiceClient.compileSnippet(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
             )
 

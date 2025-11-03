@@ -54,8 +54,9 @@ class FormatController(
         val formattedContent =
             printScriptServiceClient.formatSnippet(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 config = config,
             )
@@ -91,8 +92,9 @@ class FormatController(
         val formattedContent =
             printScriptServiceClient.previewFormat(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 config = config,
             )
@@ -128,8 +130,9 @@ class FormatController(
         val formattedBytes =
             printScriptServiceClient.downloadFormatted(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 config = config,
             )

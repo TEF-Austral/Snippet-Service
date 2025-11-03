@@ -42,14 +42,17 @@ class TestController(
             )
 
         if (!hasPermission) {
-            throw IllegalAccessException("You don't have permission to execute tests on this snippet")
+            throw IllegalAccessException(
+                "You don't have permission to execute tests on this snippet",
+            )
         }
 
         val result =
             printScriptServiceClient.executeTest(
                 container = snippet.bucketContainer,
-                key = snippet.bucketKey
-                    ?: throw IllegalStateException("Snippet has no bucket key"),
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 testId = testId,
             )
