@@ -62,7 +62,7 @@ class SnippetServiceImpl(
         )
 
         // Validar con PrintScript Service
-        validateAndUpdateCompliance(saved, ownerId)
+        validateAndUpdateCompliance(saved)
 
         repository.save(saved)
 
@@ -266,7 +266,7 @@ class SnippetServiceImpl(
             )
 
             // Re-validar después de actualizar contenido
-            validateAndUpdateCompliance(existing, requesterId)
+            validateAndUpdateCompliance(existing)
         }
 
         val saved = repository.save(existing)
@@ -307,17 +307,13 @@ class SnippetServiceImpl(
         repository.deleteById(id)
     }
 
-    private fun validateAndUpdateCompliance(
-        snippet: Snippet,
-        userId: String,
-    ) {
+    private fun validateAndUpdateCompliance(snippet: Snippet) {
         try {
             val validation =
                 printScriptServiceClient.validateSnippet(
                     container = snippet.bucketContainer,
                     key = snippet.bucketKey!!,
                     version = snippet.version,
-                    userId = userId,
                 )
 
             if (validation.isValid) {

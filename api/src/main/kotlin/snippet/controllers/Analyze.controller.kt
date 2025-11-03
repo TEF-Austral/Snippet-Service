@@ -51,7 +51,6 @@ class AnalyzeController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-                userId = userId,
             )
 
         return ResponseEntity.ok(result)
