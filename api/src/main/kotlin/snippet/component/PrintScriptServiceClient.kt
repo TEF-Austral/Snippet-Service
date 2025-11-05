@@ -3,7 +3,6 @@ package snippet.component
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -121,7 +120,7 @@ class PrintScriptServiceClient(
                 .queryParam("testId", testId)
                 .toUriString()
 
-        return restTemplate.postForObject(uri, TestExecutionResponseDTO::class.java)
+        return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
     }
 
@@ -131,15 +130,8 @@ class PrintScriptServiceClient(
                 .fromHttpUrl("$printScriptServiceUrl/config/format")
                 .toUriString()
 
-        val response =
-            restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                Array<FormatterRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
+        val response = restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)
+        return response?.toList() ?: emptyList()
     }
 
     fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
@@ -159,7 +151,7 @@ class PrintScriptServiceClient(
         val response =
             restTemplate.exchange(
                 uri,
-                HttpMethod.PUT,
+                org.springframework.http.HttpMethod.PUT,
                 request,
                 Array<FormatterRuleDTO>::class.java,
             )
@@ -173,15 +165,8 @@ class PrintScriptServiceClient(
                 .fromHttpUrl("$printScriptServiceUrl/config/analyze")
                 .toUriString()
 
-        val response =
-            restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                Array<AnalyzerRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
+        val response = restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)
+        return response?.toList() ?: emptyList()
     }
 
     fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
@@ -201,7 +186,7 @@ class PrintScriptServiceClient(
         val response =
             restTemplate.exchange(
                 uri,
-                HttpMethod.PUT,
+                org.springframework.http.HttpMethod.PUT,
                 request,
                 Array<AnalyzerRuleDTO>::class.java,
             )
