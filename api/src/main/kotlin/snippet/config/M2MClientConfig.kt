@@ -33,7 +33,6 @@ class M2MClientConfig {
         clientRegistrationRepository: ClientRegistrationRepository,
         authorizedClientRepository: OAuth2AuthorizedClientRepository,
     ): OAuth2AuthorizedClientManager {
-        // Crear un cliente personalizado para agregar el parámetro audience
         val accessTokenResponseClient =
             OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> { grantRequest ->
                 val restTemplate = RestTemplate()
@@ -71,7 +70,6 @@ class M2MClientConfig {
                     .build()
             }
 
-        // Configurar el provider con el cliente personalizado
         val authorizedClientProvider =
             OAuth2AuthorizedClientProviderBuilder
                 .builder()
@@ -79,7 +77,6 @@ class M2MClientConfig {
                     configurer.accessTokenResponseClient(accessTokenResponseClient)
                 }.build()
 
-        // Crear y configurar el manager
         val authorizedClientManager =
             DefaultOAuth2AuthorizedClientManager(
                 clientRegistrationRepository,
