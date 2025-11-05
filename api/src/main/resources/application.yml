@@ -19,8 +19,23 @@ spring:
 
   redis:
     stream:
-      snippet:
-        key: snippet-events
+      formatting:
+        request:
+          key: formatting-requests
+        result:
+          key: formatting-results
+      linting:
+        request:
+          key: linting-requests
+        result:
+          key: linting-results
+      testing:
+        request:
+          key: testing-requests
+        result:
+          key: testing-results
+    consumer:
+      group: snippet-service-group
 
   asset:
     service:
@@ -50,9 +65,6 @@ authorization:
 printscript:
   service:
     url: ${PRINTSCRIPT_SERVICE_URL:http://printscript-service-api:8080}
-
-auth0:
-  audience: ${AUTH0_AUDIENCE}
 
 management:
   endpoints:
