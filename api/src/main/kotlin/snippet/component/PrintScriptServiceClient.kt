@@ -122,21 +122,13 @@ class PrintScriptServiceClient(
     }
 
     fun getFormatterConfig(): List<FormatterRuleDTO> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-
-        val requestBody = mapOf("userId" to userId)
-        val request = HttpEntity(requestBody, headers)
+        val url = "$printScriptServiceUrl/config/format"
 
         val response =
             restTemplate.exchange(
-                "$printScriptServiceUrl/config/format",
-                HttpMethod.POST,
-                request,
+                url,
+                HttpMethod.GET,
+                null,
                 Array<FormatterRuleDTO>::class.java,
             )
 
@@ -144,23 +136,19 @@ class PrintScriptServiceClient(
     }
 
     fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
+        val url = "$printScriptServiceUrl/config/format"
 
         val headers =
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_JSON
             }
 
-        val requestBody =
-            mapOf(
-                "userId" to userId,
-                "rules" to rules,
-            )
+        val requestBody = mapOf("rules" to rules)
         val request = HttpEntity(requestBody, headers)
 
         val response =
             restTemplate.exchange(
-                "$printScriptServiceUrl/config/format",
+                url,
                 HttpMethod.PUT,
                 request,
                 Array<FormatterRuleDTO>::class.java,
@@ -170,21 +158,13 @@ class PrintScriptServiceClient(
     }
 
     fun getAnalyzerConfig(): List<AnalyzerRuleDTO> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-
-        val requestBody = mapOf("userId" to userId)
-        val request = HttpEntity(requestBody, headers)
+        val url = "$printScriptServiceUrl/config/analyze"
 
         val response =
             restTemplate.exchange(
-                "$printScriptServiceUrl/config/analyze",
-                HttpMethod.POST,
-                request,
+                url,
+                HttpMethod.GET,
+                null,
                 Array<AnalyzerRuleDTO>::class.java,
             )
 
@@ -192,23 +172,19 @@ class PrintScriptServiceClient(
     }
 
     fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
+        val url = "$printScriptServiceUrl/config/analyze"
 
         val headers =
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_JSON
             }
 
-        val requestBody =
-            mapOf(
-                "userId" to userId,
-                "rules" to rules,
-            )
+        val requestBody = mapOf("rules" to rules)
         val request = HttpEntity(requestBody, headers)
 
         val response =
             restTemplate.exchange(
-                "$printScriptServiceUrl/config/analyze",
+                url,
                 HttpMethod.PUT,
                 request,
                 Array<AnalyzerRuleDTO>::class.java,
