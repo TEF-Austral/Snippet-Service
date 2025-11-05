@@ -14,12 +14,10 @@ import snippet.dtos.FormatConfigDTO
 import snippet.dtos.FormatterRuleDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
 import snippet.dtos.responses.ValidationResponseDTO
-import snippet.security.AuthenticatedUserProvider
 
 @Component
 class PrintScriptServiceClient(
     private val restTemplate: RestTemplate,
-    private val authenticatedUserProvider: AuthenticatedUserProvider,
     @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) {
 
