@@ -7,14 +7,11 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.postForObject
 import org.springframework.web.util.UriComponentsBuilder
-import snippet.security.AuthenticatedUserProvider
 
 @Component
 class PrintScriptServiceClient(
     private val restTemplate: RestTemplate,
-    private val authenticatedUserProvider: AuthenticatedUserProvider,
     @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) {
 
@@ -23,15 +20,12 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
     ): ValidationResponse {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-
         val uriBuilder =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/analyze")
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
-                .queryParam("userId", userId)
 
         return restTemplate.getForObject(uriBuilder.toUriString(), ValidationResponse::class.java)
             ?: throw IllegalStateException("Failed to validate snippet")
@@ -117,27 +111,18 @@ class PrintScriptServiceClient(
                 .queryParam("testId", testId)
                 .toUriString()
 
-        return restTemplate.postForObject(uri, TestExecutionResponseDTO::class.java)
+        return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
     }
 
     fun getFormatterConfig(): List<FormatterRuleDTO> {
-        val url = "$printScriptServiceUrl/config/format"
+        val uri = "$printScriptServiceUrl/config/format"
 
-        val response =
-            restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                Array<FormatterRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
+        return restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)?.toList()
+            ?: emptyList()
     }
 
     fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
-        val url = "$printScriptServiceUrl/config/format"
-
         val headers =
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_JSON
@@ -145,10 +130,9 @@ class PrintScriptServiceClient(
 
         val requestBody = mapOf("rules" to rules)
         val request = HttpEntity(requestBody, headers)
-
         val response =
             restTemplate.exchange(
-                url,
+                "$printScriptServiceUrl/config/format",
                 HttpMethod.PUT,
                 request,
                 Array<FormatterRuleDTO>::class.java,
@@ -158,22 +142,13 @@ class PrintScriptServiceClient(
     }
 
     fun getAnalyzerConfig(): List<AnalyzerRuleDTO> {
-        val url = "$printScriptServiceUrl/config/analyze"
+        val uri = "$printScriptServiceUrl/config/analyze"
 
-        val response =
-            restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                Array<AnalyzerRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
+        return restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)?.toList()
+            ?: emptyList()
     }
 
     fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
-        val url = "$printScriptServiceUrl/config/analyze"
-
         val headers =
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_JSON
@@ -184,7 +159,7 @@ class PrintScriptServiceClient(
 
         val response =
             restTemplate.exchange(
-                url,
+                "$printScriptServiceUrl/config/analyze",
                 HttpMethod.PUT,
                 request,
                 Array<AnalyzerRuleDTO>::class.java,
