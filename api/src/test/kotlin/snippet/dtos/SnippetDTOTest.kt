@@ -7,7 +7,6 @@ import snippet.dtos.requests.UpdateSnippetRequestDTO
 import snippet.dtos.responses.CheckPermissionResponseDTO
 import snippet.dtos.responses.FileTypeDTO
 import snippet.dtos.responses.PermissionResponseDTO
-import snippet.dtos.responses.PermissionsSummaryDTO
 import snippet.dtos.responses.ShareSnippetResponseDTO
 import snippet.dtos.responses.SnippetResponseDTO
 import kotlin.test.assertEquals
