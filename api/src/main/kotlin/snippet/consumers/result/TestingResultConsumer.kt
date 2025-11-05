@@ -1,12 +1,10 @@
 package snippet.consumers.result
 
-
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import results.TestingResultEvent
-
 
 @Component
 @Profile("!test")

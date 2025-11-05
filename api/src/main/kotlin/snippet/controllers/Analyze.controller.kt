@@ -101,33 +101,37 @@ class AnalyzeController(
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
-        val snippet = snippetRepository.findById(snippetId)
-            .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+        val snippet =
+            snippetRepository
+                .findById(snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
 
-        val hasPermission = authorizationServiceClient.checkPermission(
-            userId = userId,
-            action = "read",
-            snippetId = snippetId.toString(),
-            ownerId = snippet.ownerId
-        )
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "read",
+                snippetId = snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
 
         if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to analyze this snippet")
         }
 
-        val requestId = asyncTaskProducer.requestLinting(
-            snippetId = snippetId,
-            bucketContainer = snippet.bucketContainer,
-            bucketKey = snippet.bucketKey!!,
-            version = version,
-            userId = userId
-        )
+        val requestId =
+            asyncTaskProducer.requestLinting(
+                snippetId = snippetId,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey!!,
+                version = version,
+                userId = userId,
+            )
 
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,
-                "message" to "Linting request accepted. Processing asynchronously."
-            )
+                "message" to "Linting request accepted. Processing asynchronously.",
+            ),
         )
     }
 }

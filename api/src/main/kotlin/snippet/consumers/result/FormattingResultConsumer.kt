@@ -23,6 +23,3 @@ class FormattingResultConsumer(
         handler.handleFormattingResult(event)
     }
 }
-
-
-

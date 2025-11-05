@@ -1,6 +1,5 @@
 package snippet.producers
 
-
 import org.austral.ingsis.redis.RedisStreamProducer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -32,17 +31,20 @@ class AsyncTaskProducer(
         userId: String,
     ): String {
         val requestId = UUID.randomUUID().toString()
-        val event = FormattingRequestEvent(
-            requestId = requestId,
-            snippetId = snippetId,
-            bucketContainer = bucketContainer,
-            bucketKey = bucketKey,
-            version = version,
-            userId = userId
-        )
+        val event =
+            FormattingRequestEvent(
+                requestId = requestId,
+                snippetId = snippetId,
+                bucketContainer = bucketContainer,
+                bucketKey = bucketKey,
+                version = version,
+                userId = userId,
+            )
 
         producer.emit(formattingRequestKey, event)
-        println("📤 [Snippet Service] Published formatting REQUEST: $requestId for snippet: $snippetId")
+        println(
+            "📤 [Snippet Service] Published formatting REQUEST: $requestId for snippet: $snippetId",
+        )
         return requestId
     }
 
@@ -54,17 +56,20 @@ class AsyncTaskProducer(
         userId: String,
     ): String {
         val requestId = UUID.randomUUID().toString()
-        val event = LintingRequestEvent(
-            requestId = requestId,
-            snippetId = snippetId,
-            bucketContainer = bucketContainer,
-            bucketKey = bucketKey,
-            version = version,
-            userId = userId
-        )
+        val event =
+            LintingRequestEvent(
+                requestId = requestId,
+                snippetId = snippetId,
+                bucketContainer = bucketContainer,
+                bucketKey = bucketKey,
+                version = version,
+                userId = userId,
+            )
 
         producer.emit(lintingRequestKey, event)
-        println("📤 [Snippet Service] Published linting REQUEST: $requestId for snippet: $snippetId")
+        println(
+            "📤 [Snippet Service] Published linting REQUEST: $requestId for snippet: $snippetId",
+        )
         return requestId
     }
 
@@ -76,17 +81,20 @@ class AsyncTaskProducer(
         testId: Long,
     ): String {
         val requestId = UUID.randomUUID().toString()
-        val event = TestingRequestEvent(
-            requestId = requestId,
-            snippetId = snippetId,
-            bucketContainer = bucketContainer,
-            bucketKey = bucketKey,
-            version = version,
-            testId = testId
-        )
+        val event =
+            TestingRequestEvent(
+                requestId = requestId,
+                snippetId = snippetId,
+                bucketContainer = bucketContainer,
+                bucketKey = bucketKey,
+                version = version,
+                testId = testId,
+            )
 
         producer.emit(testingRequestKey, event)
-        println("📤 [Snippet Service] Published testing REQUEST: $requestId for snippet: $snippetId")
+        println(
+            "📤 [Snippet Service] Published testing REQUEST: $requestId for snippet: $snippetId",
+        )
         return requestId
     }
 }
