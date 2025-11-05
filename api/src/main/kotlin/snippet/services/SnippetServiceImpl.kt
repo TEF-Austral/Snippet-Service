@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional
 import snippet.component.AssetServiceClient
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
-import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.requests.CreateSnippetRequestDTO
 import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetFilterDTO
-import snippet.dtos.SnippetResponseDTO
+import snippet.dtos.responses.SnippetResponseDTO
 import snippet.dtos.SortField
 import snippet.dtos.SortOrder
-import snippet.dtos.UpdateSnippetDTO
+import snippet.dtos.requests.UpdateSnippetRequestDTO
 import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
@@ -32,7 +32,7 @@ class SnippetServiceImpl(
 
     @Transactional
     override fun createSnippet(
-        requestDTO: CreateSnippetDTO,
+        requestDTO: CreateSnippetRequestDTO,
         ownerId: String,
         author: String,
     ): SnippetResponseDTO {
@@ -230,7 +230,7 @@ class SnippetServiceImpl(
     @Transactional
     override fun updateSnippet(
         id: Long,
-        requestDTO: UpdateSnippetDTO,
+        requestDTO: UpdateSnippetRequestDTO,
         requesterId: String,
     ): SnippetResponseDTO {
         val existing =

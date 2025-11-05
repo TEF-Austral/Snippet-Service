@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
-import snippet.component.ValidationResponse
+import snippet.dtos.responses.ValidationResponseDTO
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
 
@@ -24,7 +24,7 @@ class AnalyzeController(
     fun analyzeSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
-    ): ResponseEntity<ValidationResponse> {
+    ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         val snippet =
@@ -60,7 +60,7 @@ class AnalyzeController(
     fun compileSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
-    ): ResponseEntity<ValidationResponse> {
+    ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         val snippet =

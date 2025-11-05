@@ -12,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension
 import snippet.component.AssetServiceClient
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
-import snippet.dtos.CreateSnippetDTO
-import snippet.dtos.UpdateSnippetDTO
+import snippet.dtos.requests.CreateSnippetRequestDTO
+import snippet.dtos.requests.UpdateSnippetRequestDTO
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
 import java.util.Optional
@@ -45,7 +45,7 @@ class SnippetServiceImplTest {
     @Test
     fun `createSnippet should create and save snippet successfully`() {
         val createDTO =
-            CreateSnippetDTO(
+            CreateSnippetRequestDTO(
                 content = "println('Hello')",
                 name = "Test Snippet",
                 description = "Test Description",
@@ -82,7 +82,7 @@ class SnippetServiceImplTest {
     @Test
     fun `createSnippet should handle empty content`() {
         val createDTO =
-            CreateSnippetDTO(
+            CreateSnippetRequestDTO(
                 content = "",
                 name = "Empty Snippet",
                 description = "Empty",
@@ -212,7 +212,7 @@ class SnippetServiceImplTest {
                 author = "Author",
             )
         val updateDTO =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 name = "New Name",
                 description = "New Desc",
                 content = "new content",
@@ -256,7 +256,7 @@ class SnippetServiceImplTest {
                 author = "Author",
             )
         val updateDTO =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 name = "New Name",
                 description = null,
                 content = null,
@@ -288,7 +288,7 @@ class SnippetServiceImplTest {
         val snippetId = 1L
         val requesterId = "user123"
         val updateDTO =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 name = "New",
                 description = null,
                 content = null,
@@ -322,7 +322,7 @@ class SnippetServiceImplTest {
                 author = "Author",
             )
         val updateDTO =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 name = "New",
                 description = null,
                 content = null,

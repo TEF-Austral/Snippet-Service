@@ -2,6 +2,14 @@ package snippet.dtos
 
 import common.Language
 import org.junit.jupiter.api.Test
+import snippet.dtos.requests.CreateSnippetRequestDTO
+import snippet.dtos.requests.UpdateSnippetRequestDTO
+import snippet.dtos.responses.CheckPermissionResponseDTO
+import snippet.dtos.responses.FileTypeDTO
+import snippet.dtos.responses.PermissionResponseDTO
+import snippet.dtos.responses.PermissionsSummaryDTO
+import snippet.dtos.responses.ShareSnippetResponseDTO
+import snippet.dtos.responses.SnippetResponseDTO
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -10,7 +18,7 @@ class SnippetDTOTest {
     @Test
     fun `CreateSnippetDTO should be created with all properties`() {
         val dto =
-            CreateSnippetDTO(
+            CreateSnippetRequestDTO(
                 content = "println('Hello')",
                 name = "Test Snippet",
                 description = "Test Description",
@@ -28,7 +36,7 @@ class SnippetDTOTest {
     @Test
     fun `CreateSnippetDTO should handle empty content`() {
         val dto =
-            CreateSnippetDTO(
+            CreateSnippetRequestDTO(
                 content = "",
                 name = "Empty Snippet",
                 description = "Empty",
@@ -66,7 +74,7 @@ class SnippetDTOTest {
     @Test
     fun `UpdateSnippetDTO should handle partial updates`() {
         val dto =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 content = "new content",
                 name = "New Name",
                 description = null,
@@ -84,7 +92,7 @@ class SnippetDTOTest {
     @Test
     fun `UpdateSnippetDTO should handle all null values`() {
         val dto =
-            UpdateSnippetDTO(
+            UpdateSnippetRequestDTO(
                 content = null,
                 name = null,
                 description = null,
@@ -157,7 +165,7 @@ class SnippetDTOTest {
 
     @Test
     fun `ShareSnippetResponseDTO should contain all fields`() {
-        val permissions = PermissionsSummary(canRead = true, canEdit = true)
+        val permissions = PermissionsSummaryDTO(canRead = true, canEdit = true)
         val dto =
             ShareSnippetResponseDTO(
                 message = "Snippet shared successfully",

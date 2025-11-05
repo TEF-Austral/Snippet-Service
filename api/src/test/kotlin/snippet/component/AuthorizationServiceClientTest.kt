@@ -11,8 +11,8 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
-import snippet.dtos.CheckPermissionResponseDTO
-import snippet.dtos.PermissionResponseDTO
+import snippet.dtos.responses.CheckPermissionResponseDTO
+import snippet.dtos.responses.PermissionResponseDTO
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

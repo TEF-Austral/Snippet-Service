@@ -1,14 +1,14 @@
 package snippet.services
 
-import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.requests.CreateSnippetRequestDTO
 import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetFilterDTO
-import snippet.dtos.SnippetResponseDTO
-import snippet.dtos.UpdateSnippetDTO
+import snippet.dtos.responses.SnippetResponseDTO
+import snippet.dtos.requests.UpdateSnippetRequestDTO
 
 interface SnippetService {
     fun createSnippet(
-        requestDTO: CreateSnippetDTO,
+        requestDTO: CreateSnippetRequestDTO,
         ownerId: String,
         author: String,
     ): SnippetResponseDTO
@@ -20,7 +20,7 @@ interface SnippetService {
 
     fun updateSnippet(
         id: Long,
-        requestDTO: UpdateSnippetDTO,
+        requestDTO: UpdateSnippetRequestDTO,
         requesterId: String,
     ): SnippetResponseDTO
 

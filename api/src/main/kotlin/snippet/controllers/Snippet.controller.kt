@@ -1,8 +1,8 @@
 package snippet.controllers
 
 import common.Language
-import snippet.dtos.SnippetResponseDTO
-import snippet.dtos.UpdateSnippetDTO
+import snippet.dtos.responses.SnippetResponseDTO
+import snippet.dtos.requests.UpdateSnippetRequestDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.dtos.ComplianceFilter
-import snippet.dtos.CreateSnippetDTO
+import snippet.dtos.requests.CreateSnippetRequestDTO
 import snippet.dtos.OwnershipFilter
 import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetFilterDTO
@@ -34,7 +34,7 @@ class SnippetController(
 
     @PostMapping("")
     fun createSnippet(
-        @Valid @RequestBody requestDTO: CreateSnippetDTO,
+        @Valid @RequestBody requestDTO: CreateSnippetRequestDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val author = authenticatedUserProvider.getCurrentUserName() ?: "Unknown"
@@ -54,7 +54,7 @@ class SnippetController(
     @PutMapping("/{id}")
     fun updateSnippet(
         @PathVariable id: Long,
-        @Valid @RequestBody requestDTO: UpdateSnippetDTO,
+        @Valid @RequestBody requestDTO: UpdateSnippetRequestDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val updated = service.updateSnippet(id, requestDTO, userId)
