@@ -12,6 +12,8 @@ import org.springframework.web.util.UriComponentsBuilder
 import snippet.dtos.AnalyzerRuleDTO
 import snippet.dtos.FormatConfigDTO
 import snippet.dtos.FormatterRuleDTO
+import snippet.dtos.TestDTO
+import snippet.dtos.requests.CreateTestRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
 import snippet.dtos.responses.ValidationResponseDTO
 import snippet.security.AuthenticatedUserProvider
@@ -223,6 +225,50 @@ class PrintScriptServiceClient(
             )
 
         return response.body?.toList() ?: emptyList()
+    }
+
+    fun getTestCases(snippetId: Long): List<TestDTO> {
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/tests")
+                .queryParam("snippetId", snippetId)
+                .toUriString()
+
+        val response =
+            restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                null,
+                Array<TestDTO>::class.java,
+            )
+
+        return response.body?.toList() ?: emptyList()
+    }
+
+    fun createTestCase(request: CreateTestRequestDTO): TestDTO {
+        val url = "$printScriptServiceUrl/tests"
+
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+
+        val requestEntity = HttpEntity(request, headers)
+
+        return restTemplate.postForObject(url, requestEntity, TestDTO::class.java)
+            ?: throw IllegalStateException("Failed to create test case")
+    }
+
+    fun getTestCase(testId: Long): TestDTO {
+        val url = "$printScriptServiceUrl/tests/$testId"
+
+        return restTemplate.getForObject(url, TestDTO::class.java)
+            ?: throw NoSuchElementException("Test not found: $testId")
+    }
+
+    fun deleteTestCase(testId: Long) {
+        val url = "$printScriptServiceUrl/tests/$testId"
+        restTemplate.delete(url)
     }
 
     fun downloadFormatted(
