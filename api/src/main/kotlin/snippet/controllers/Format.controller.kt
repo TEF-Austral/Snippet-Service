@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
-import snippet.component.FormatConfigDTO
 import snippet.component.PrintScriptServiceClient
 import snippet.producers.AsyncTaskProducer
+import snippet.dtos.FormatConfigDTO
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
 

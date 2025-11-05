@@ -1,4 +1,4 @@
-package snippet.dtos
+package snippet.dtos.responses
 
 data class FileTypeDTO(
     val language: String,

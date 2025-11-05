@@ -1,8 +1,8 @@
-package snippet.dtos
+package snippet.dtos.requests
 
 import common.Language
 
-data class UpdateSnippetDTO(
+data class UpdateSnippetRequestDTO(
     val name: String?,
     val content: String?,
     val description: String?,
