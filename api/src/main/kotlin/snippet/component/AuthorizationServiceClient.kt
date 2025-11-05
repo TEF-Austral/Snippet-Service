@@ -7,8 +7,8 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import snippet.dtos.CheckPermissionResponseDTO
-import snippet.dtos.PermissionResponseDTO
+import snippet.dtos.responses.CheckPermissionResponseDTO
+import snippet.dtos.responses.PermissionResponseDTO
 
 @Component
 class AuthorizationServiceClient(

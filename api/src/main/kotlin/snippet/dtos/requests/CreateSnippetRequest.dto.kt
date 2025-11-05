@@ -1,10 +1,10 @@
-package snippet.dtos
+package snippet.dtos.requests
 
 import common.Language
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
-data class CreateSnippetDTO(
+data class CreateSnippetRequestDTO(
     val content: String? = "",
     @field:NotBlank(message = "Name is required")
     val name: String,

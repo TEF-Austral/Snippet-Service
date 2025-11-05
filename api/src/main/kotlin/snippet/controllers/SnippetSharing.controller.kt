@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
-import snippet.dtos.PermissionsSummary
+import snippet.dtos.PermissionsSummaryDTO
 import snippet.dtos.ShareSnippetDTO
-import snippet.dtos.ShareSnippetResponseDTO
+import snippet.dtos.responses.ShareSnippetResponseDTO
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
 
@@ -62,7 +62,7 @@ class SnippetSharingController(
                 snippetId = id,
                 sharedWith = requestDTO.userId,
                 permissions =
-                    PermissionsSummary(
+                    PermissionsSummaryDTO(
                         canRead = requestDTO.canRead,
                         canEdit = requestDTO.canEdit,
                     ),

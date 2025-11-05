@@ -9,6 +9,11 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForObject
 import org.springframework.web.util.UriComponentsBuilder
+import snippet.dtos.AnalyzerRuleDTO
+import snippet.dtos.FormatConfigDTO
+import snippet.dtos.FormatterRuleDTO
+import snippet.dtos.responses.TestExecutionResponseDTO
+import snippet.dtos.responses.ValidationResponseDTO
 import snippet.security.AuthenticatedUserProvider
 
 @Component
@@ -22,7 +27,7 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
-    ): ValidationResponse {
+    ): ValidationResponseDTO {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         val uriBuilder =
@@ -33,7 +38,10 @@ class PrintScriptServiceClient(
                 .queryParam("version", version)
                 .queryParam("userId", userId)
 
-        return restTemplate.getForObject(uriBuilder.toUriString(), ValidationResponse::class.java)
+        return restTemplate.getForObject(
+            uriBuilder.toUriString(),
+            ValidationResponseDTO::class.java,
+        )
             ?: throw IllegalStateException("Failed to validate snippet")
     }
 
@@ -41,7 +49,7 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
-    ): ValidationResponse {
+    ): ValidationResponseDTO {
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/analyze/compile")
@@ -50,7 +58,7 @@ class PrintScriptServiceClient(
                 .queryParam("version", version)
                 .toUriString()
 
-        return restTemplate.getForObject(uri, ValidationResponse::class.java)
+        return restTemplate.getForObject(uri, ValidationResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to compile snippet")
     }
 
@@ -122,11 +130,17 @@ class PrintScriptServiceClient(
     }
 
     fun getFormatterConfig(): List<FormatterRuleDTO> {
-        val url = "$printScriptServiceUrl/config/format"
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/config/format")
+                .queryParam("userId", userId)
+                .toUriString()
 
         val response =
             restTemplate.exchange(
-                url,
+                uri,
                 HttpMethod.GET,
                 null,
                 Array<FormatterRuleDTO>::class.java,
@@ -136,7 +150,13 @@ class PrintScriptServiceClient(
     }
 
     fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
-        val url = "$printScriptServiceUrl/config/format"
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/config/format")
+                .queryParam("userId", userId)
+                .toUriString()
 
         val headers =
             HttpHeaders().apply {
@@ -148,7 +168,7 @@ class PrintScriptServiceClient(
 
         val response =
             restTemplate.exchange(
-                url,
+                uri,
                 HttpMethod.PUT,
                 request,
                 Array<FormatterRuleDTO>::class.java,
@@ -158,11 +178,17 @@ class PrintScriptServiceClient(
     }
 
     fun getAnalyzerConfig(): List<AnalyzerRuleDTO> {
-        val url = "$printScriptServiceUrl/config/analyze"
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/config/analyze")
+                .queryParam("userId", userId)
+                .toUriString()
 
         val response =
             restTemplate.exchange(
-                url,
+                uri,
                 HttpMethod.GET,
                 null,
                 Array<AnalyzerRuleDTO>::class.java,
@@ -172,7 +198,13 @@ class PrintScriptServiceClient(
     }
 
     fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
-        val url = "$printScriptServiceUrl/config/analyze"
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/config/analyze")
+                .queryParam("userId", userId)
+                .toUriString()
 
         val headers =
             HttpHeaders().apply {
@@ -184,7 +216,7 @@ class PrintScriptServiceClient(
 
         val response =
             restTemplate.exchange(
-                url,
+                uri,
                 HttpMethod.PUT,
                 request,
                 Array<AnalyzerRuleDTO>::class.java,
@@ -217,40 +249,3 @@ class PrintScriptServiceClient(
             ?: throw IllegalStateException("Failed to download formatted content")
     }
 }
-
-data class ValidationResponse(
-    val isValid: Boolean,
-    val violations: List<LintViolation>,
-)
-
-data class LintViolation(
-    val message: String,
-    val line: Int,
-    val column: Int,
-)
-
-data class FormatConfigDTO(
-    val spaceBeforeColon: Boolean,
-    val spaceAfterColon: Boolean,
-    val spacesInAssignation: Int,
-    val newLineBeforePrintln: Int,
-)
-
-data class FormatterRuleDTO(
-    val id: Long?,
-    val name: String,
-    val isActive: Boolean,
-    val value: String?,
-)
-
-data class AnalyzerRuleDTO(
-    val id: Long?,
-    val name: String,
-    val isActive: Boolean,
-)
-
-data class TestExecutionResponseDTO(
-    val result: String,
-    val output: List<String>,
-    val errors: List<String>,
-)
