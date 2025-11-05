@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
 import snippet.dtos.responses.TestExecutionResponseDTO
-import snippet.component.TestExecutionResponseDTO
 import snippet.producers.AsyncTaskProducer
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider

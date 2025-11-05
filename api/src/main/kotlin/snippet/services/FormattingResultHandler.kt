@@ -27,7 +27,7 @@ class FormattingResultHandler(
             assetServiceClient.createOrUpdateAsset(
                 container = snippet.bucketContainer,
                 key = snippet.bucketKey!!,
-                content = result.formattedContent,
+                content = result.formattedContent!!,
             )
 
             println("✅ [Snippet Service] Snippet ${result.snippetId} formatted successfully")
