@@ -15,19 +15,26 @@ class FormattingResultHandler(
         println("🔔 [Snippet Service] Processing formatting result for snippet ${result.snippetId}")
 
         if (result.success && result.formattedContent != null) {
-            val snippet = snippetRepository.findById(result.snippetId)
-                .orElseThrow { NoSuchElementException("Snippet not found: ${result.snippetId}") }
+            val snippet =
+                snippetRepository
+                    .findById(result.snippetId)
+                    .orElseThrow {
+                        NoSuchElementException(
+                            "Snippet not found: ${result.snippetId}",
+                        )
+                    }
 
             assetServiceClient.createOrUpdateAsset(
                 container = snippet.bucketContainer,
                 key = snippet.bucketKey!!,
-                content = result.formattedContent
+                content = result.formattedContent!!,
             )
 
             println("✅ [Snippet Service] Snippet ${result.snippetId} formatted successfully")
         } else {
-            println("❌ [Snippet Service] Formatting failed for snippet ${result.snippetId}: ${result.error}")
+            println(
+                "❌ [Snippet Service] Formatting failed for snippet ${result.snippetId}: ${result.error}",
+            )
         }
     }
 }
-

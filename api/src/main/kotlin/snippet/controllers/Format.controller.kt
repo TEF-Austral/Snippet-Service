@@ -157,33 +157,37 @@ class FormatController(
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
-        val snippet = snippetRepository.findById(snippetId)
-            .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+        val snippet =
+            snippetRepository
+                .findById(snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
 
-        val hasPermission = authorizationServiceClient.checkPermission(
-            userId = userId,
-            action = "edit",
-            snippetId = snippetId.toString(),
-            ownerId = snippet.ownerId
-        )
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "edit",
+                snippetId = snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
 
         if (!hasPermission) {
             throw IllegalAccessException("You don't have permission to format this snippet")
         }
 
-        val requestId = asyncTaskProducer.requestFormatting(
-            snippetId = snippetId,
-            bucketContainer = snippet.bucketContainer,
-            bucketKey = snippet.bucketKey!!,
-            version = version,
-            userId = userId
-        )
+        val requestId =
+            asyncTaskProducer.requestFormatting(
+                snippetId = snippetId,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey!!,
+                version = version,
+                userId = userId,
+            )
 
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,
-                "message" to "Formatting request accepted. Processing asynchronously."
-            )
+                "message" to "Formatting request accepted. Processing asynchronously.",
+            ),
         )
     }
 }

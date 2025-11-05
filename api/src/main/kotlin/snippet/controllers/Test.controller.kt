@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
 import snippet.dtos.responses.TestExecutionResponseDTO
-import snippet.component.TestExecutionResponseDTO
 import snippet.producers.AsyncTaskProducer
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
@@ -71,34 +70,39 @@ class TestController(
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
-        val snippet = snippetRepository.findById(snippetId)
-            .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+        val snippet =
+            snippetRepository
+                .findById(snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
 
-        val hasPermission = authorizationServiceClient.checkPermission(
-            userId = userId,
-            action = "edit",
-            snippetId = snippetId.toString(),
-            ownerId = snippet.ownerId
-        )
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "edit",
+                snippetId = snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
 
         if (!hasPermission) {
-            throw IllegalAccessException("You don't have permission to execute tests on this snippet")
+            throw IllegalAccessException(
+                "You don't have permission to execute tests on this snippet",
+            )
         }
 
-        val requestId = asyncTaskProducer.requestTesting(
-            snippetId = snippetId,
-            bucketContainer = snippet.bucketContainer,
-            bucketKey = snippet.bucketKey!!,
-            version = version,
-            testId = testId
-        )
+        val requestId =
+            asyncTaskProducer.requestTesting(
+                snippetId = snippetId,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey!!,
+                version = version,
+                testId = testId,
+            )
 
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,
-                "message" to "Test execution request accepted. Processing asynchronously."
-            )
+                "message" to "Test execution request accepted. Processing asynchronously.",
+            ),
         )
     }
-
 }
