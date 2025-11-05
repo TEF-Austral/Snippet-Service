@@ -11,16 +11,19 @@ import snippet.dtos.AnalyzerRuleDTO
 import snippet.dtos.FormatterRuleDTO
 import snippet.dtos.requests.UpdateAnalyzerConfigRequestDTO
 import snippet.dtos.requests.UpdateFormatterConfigRequestDTO
+import snippet.security.AuthenticatedUserProvider
 
 @RestController
 @RequestMapping("/config")
 class ConfigurationController(
     private val printScriptServiceClient: PrintScriptServiceClient,
+    private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
 
     @GetMapping("/format")
     fun getFormatterConfig(): ResponseEntity<List<FormatterRuleDTO>> {
-        val rules = printScriptServiceClient.getFormatterConfig()
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val rules = printScriptServiceClient.getFormatterConfig(userId)
         return ResponseEntity.ok(rules)
     }
 
@@ -28,13 +31,15 @@ class ConfigurationController(
     fun updateFormatterConfig(
         @RequestBody request: UpdateFormatterConfigRequestDTO,
     ): ResponseEntity<List<FormatterRuleDTO>> {
-        val updatedRules = printScriptServiceClient.updateFormatterConfig(request.rules)
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val updatedRules = printScriptServiceClient.updateFormatterConfig(userId, request.rules)
         return ResponseEntity.ok(updatedRules)
     }
 
     @GetMapping("/analyze")
     fun getAnalyzerConfig(): ResponseEntity<List<AnalyzerRuleDTO>> {
-        val rules = printScriptServiceClient.getAnalyzerConfig()
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val rules = printScriptServiceClient.getAnalyzerConfig(userId)
         return ResponseEntity.ok(rules)
     }
 
@@ -42,7 +47,8 @@ class ConfigurationController(
     fun updateAnalyzerConfig(
         @RequestBody request: UpdateAnalyzerConfigRequestDTO,
     ): ResponseEntity<List<AnalyzerRuleDTO>> {
-        val updatedRules = printScriptServiceClient.updateAnalyzerConfig(request.rules)
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val updatedRules = printScriptServiceClient.updateAnalyzerConfig(userId, request.rules)
         return ResponseEntity.ok(updatedRules)
     }
 }
