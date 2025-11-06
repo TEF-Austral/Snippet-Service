@@ -71,6 +71,12 @@ jobs:
             ${{ steps.image.outputs.name }}:dev
             ${{ steps.image.outputs.name }}:dev-${{ needs.versioning.outputs.version }}
             ${{ steps.image.outputs.name }}:dev-${{ github.sha }}
+            
+            
+
+      - name: Publish Github Packages
+          run: ./gradlew publish --no-daemon
+          env
 
       # ========== NOTIFY PROVISIONER ==========
       - name: Notify provisioner (DEV)
