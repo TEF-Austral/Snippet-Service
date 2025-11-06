@@ -181,8 +181,9 @@ class SnippetServiceImpl(
         )
     }
 
-    override fun getSnippetsThatUserHavePermission(requesterId: String):
-            List<StreamSnippetResponseDTO> {
+    override fun getSnippetsThatUserHavePermission(
+        requesterId: String,
+    ): List<StreamSnippetResponseDTO> {
         val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
         val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
         val snippetEntities = repository.findAllById(snippetIds)

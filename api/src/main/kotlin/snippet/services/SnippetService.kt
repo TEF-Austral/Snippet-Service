@@ -36,9 +36,7 @@ interface SnippetService {
         pageSize: Int,
     ): PaginatedSnippetsDTO
 
-    fun getSnippetsThatUserHavePermission(
-        requesterId: String,
-    ): List<StreamSnippetResponseDTO>
+    fun getSnippetsThatUserHavePermission(requesterId: String): List<StreamSnippetResponseDTO>
 
     fun getSnippetThatUserIsOwner(
         requesterId: String,
