@@ -1,6 +1,5 @@
 package snippet.services
 
-import events.SnippetEventProducer
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
@@ -28,7 +27,6 @@ class SnippetServiceImpl(
     private val assetServiceClient: AssetServiceClient,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val printScriptServiceClient: PrintScriptServiceClient,
-    private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
     @Transactional
