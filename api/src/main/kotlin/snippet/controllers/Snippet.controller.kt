@@ -2,6 +2,7 @@ package snippet.controllers
 
 import common.Language
 import snippet.dtos.responses.SnippetResponseDTO
+import snippet.dtos.responses.StreamSnippetResponseDTO
 import snippet.dtos.requests.UpdateSnippetRequestDTO
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -114,6 +115,13 @@ class SnippetController(
             )
 
         val result = service.getMySnippets(userId, page, pageSize, filterDTO)
+        return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/MySnippetsThatHavePermission")
+    fun getSnippetsThatUserHavePermission(): ResponseEntity<List<StreamSnippetResponseDTO>> {
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val result = service.getSnippetsThatUserHavePermission(userId)
         return ResponseEntity.ok(result)
     }
 }

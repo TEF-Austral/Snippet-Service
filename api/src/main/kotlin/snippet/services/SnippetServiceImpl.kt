@@ -16,6 +16,7 @@ import snippet.dtos.responses.SnippetResponseDTO
 import snippet.dtos.SortField
 import snippet.dtos.SortOrder
 import snippet.dtos.requests.UpdateSnippetRequestDTO
+import snippet.dtos.responses.StreamSnippetResponseDTO
 import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
@@ -161,7 +162,7 @@ class SnippetServiceImpl(
         )
     }
 
-    override fun getSnippetsThatUserHaveAcces(
+    override fun getSnippetsThatUserHaveAccess(
         requesterId: String,
         page: Int,
         pageSize: Int,
@@ -178,6 +179,24 @@ class SnippetServiceImpl(
             count = pageResult.totalElements,
             snippets = pageResult.content.map { it.toDto() },
         )
+    }
+
+    override fun getSnippetsThatUserHavePermission(
+        requesterId: String,
+    ): List<StreamSnippetResponseDTO> {
+        val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
+        val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
+        val snippetEntities = repository.findAllById(snippetIds)
+
+        return snippetEntities.map { snippet ->
+            StreamSnippetResponseDTO(
+                snippetId = snippet.id ?: 0L,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey ?: "",
+                language = snippet.language,
+                version = snippet.version,
+            )
+        }
     }
 
     override fun getAllMySnippets(
