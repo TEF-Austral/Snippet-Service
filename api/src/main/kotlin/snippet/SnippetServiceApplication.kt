@@ -9,3 +9,4 @@ class SnippetServiceApplication
 fun main(args: Array<String>) {
     runApplication<SnippetServiceApplication>(*args)
 }
+// ayayay
