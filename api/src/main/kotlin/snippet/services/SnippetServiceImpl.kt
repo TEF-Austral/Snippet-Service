@@ -314,6 +314,7 @@ class SnippetServiceImpl(
                     container = snippet.bucketContainer,
                     key = snippet.bucketKey!!,
                     version = snippet.version,
+                    userId = snippet.ownerId,
                 )
 
             if (validation.isValid) {
