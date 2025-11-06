@@ -1,4 +1,4 @@
-package snippet.requests
+package requests
 
 data class TestingRequestEvent(
     val requestId: String,

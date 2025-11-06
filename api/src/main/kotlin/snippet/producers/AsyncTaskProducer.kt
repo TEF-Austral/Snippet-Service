@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import requests.FormattingRequestEvent
 import requests.LintingRequestEvent
-import snippet.requests.TestingRequestEvent
+import requests.TestingRequestEvent
 import java.util.UUID
 
 @Component
@@ -72,7 +72,6 @@ class AsyncTaskProducer(
         val event =
             LintingRequestEvent(
                 requestId = requestId,
-                snippetId = snippetId,
                 bucketContainer = bucketContainer,
                 bucketKey = bucketKey,
                 languageId = languageId,
