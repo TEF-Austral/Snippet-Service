@@ -23,6 +23,7 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
+        userId: String,
     ): ValidationResponseDTO {
         val uri =
             UriComponentsBuilder
@@ -30,6 +31,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         return restTemplate.getForObject(
@@ -61,6 +63,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         config: FormatConfigDTO,
+        userId: String,
     ): String {
         val uri =
             UriComponentsBuilder
@@ -68,6 +71,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         val headers =
@@ -85,6 +89,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         config: FormatConfigDTO,
+        userId: String,
     ): String {
         val uri =
             UriComponentsBuilder
@@ -92,6 +97,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         val headers =
@@ -109,6 +115,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         testId: Long,
+        userId: String,
     ): TestExecutionResponseDTO {
         val uri =
             UriComponentsBuilder
@@ -117,25 +124,11 @@ class PrintScriptServiceClient(
                 .queryParam("key", key)
                 .queryParam("version", version)
                 .queryParam("testId", testId)
+                .queryParam("userId", userId)
                 .toUriString()
 
         return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
-    }
-
-    // ============================================================================
-    // MÉTODOS MODIFICADOS - Agregar parámetro userId
-    // ============================================================================
-
-    fun getFormatterConfig(userId: String): List<FormatterRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/format")
-                .queryParam("userId", userId) // ✅ Agregar userId como query param
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
     }
 
     fun updateFormatterConfig(
@@ -165,17 +158,6 @@ class PrintScriptServiceClient(
             )
 
         return response.body?.toList() ?: emptyList()
-    }
-
-    fun getAnalyzerConfig(userId: String): List<AnalyzerRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/analyze")
-                .queryParam("userId", userId) // ✅ Agregar userId como query param
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
     }
 
     fun updateAnalyzerConfig(
