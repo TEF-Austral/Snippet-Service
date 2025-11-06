@@ -1,11 +1,6 @@
 package snippet.controllers
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,21 +10,20 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.RestTemplate
-import snippet.security.AuthenticatedUserProvider
-import snippet.repositories.SnippetRepository
 import snippet.component.AuthorizationServiceClient
-import snippet.dtos.requests.CreateTestRequestDTO
+import snippet.component.PrintScriptServiceClient
 import snippet.dtos.TestDTO
+import snippet.dtos.requests.CreateTestRequestDTO
+import snippet.repositories.SnippetRepository
+import snippet.security.AuthenticatedUserProvider
 
 @RestController
 @RequestMapping("/testcases")
 class TestCasesController(
-    private val restTemplate: RestTemplate,
+    private val printScriptServiceClient: PrintScriptServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
-    @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) {
 
     @PostMapping
@@ -56,17 +50,9 @@ class TestCasesController(
             )
         }
 
-        val url = "$printScriptServiceUrl/tests"
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
+        val test = printScriptServiceClient.createTestCase(request)
 
-        val requestEntity = HttpEntity(request, headers)
-
-        val response = restTemplate.postForEntity(url, requestEntity, TestDTO::class.java)
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response.body)
+        return ResponseEntity.status(HttpStatus.CREATED).body(test)
     }
 
     @GetMapping
@@ -92,27 +78,16 @@ class TestCasesController(
             throw IllegalAccessException("You don't have permission to view tests for this snippet")
         }
 
-        val url = "$printScriptServiceUrl/tests?snippetId=$snippetId"
+        val tests = printScriptServiceClient.getTestsBySnippet(snippetId)
 
-        val response =
-            restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                Array<TestDTO>::class.java,
-            )
-
-        return ResponseEntity.ok(response.body?.toList() ?: emptyList())
+        return ResponseEntity.ok(tests)
     }
 
     @GetMapping("/{id}")
     fun getTest(
         @PathVariable id: Long,
     ): ResponseEntity<TestDTO> {
-        val testUrl = "$printScriptServiceUrl/tests/$id"
-        val test =
-            restTemplate.getForObject(testUrl, TestDTO::class.java)
-                ?: throw NoSuchElementException("Test not found: $id")
+        val test = printScriptServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
         val snippet =
@@ -139,10 +114,7 @@ class TestCasesController(
     fun deleteTest(
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
-        val testUrl = "$printScriptServiceUrl/tests/$id"
-        val test =
-            restTemplate.getForObject(testUrl, TestDTO::class.java)
-                ?: throw NoSuchElementException("Test not found: $id")
+        val test = printScriptServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
         val snippet =
@@ -162,7 +134,7 @@ class TestCasesController(
             throw IllegalAccessException("You don't have permission to delete this test")
         }
 
-        restTemplate.delete(testUrl)
+        printScriptServiceClient.deleteTestCase(id)
         return ResponseEntity.noContent().build()
     }
 }

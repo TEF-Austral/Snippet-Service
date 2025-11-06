@@ -2,12 +2,15 @@ package snippet.controllers
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
+import snippet.dtos.requests.TestExecutionRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
+import snippet.producers.AsyncTaskProducer
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
 
@@ -18,14 +21,54 @@ class TestController(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
+    private val asyncTaskProducer: AsyncTaskProducer,
 ) {
 
     @PostMapping("/execute")
     fun executeTest(
+        @RequestBody request: TestExecutionRequestDTO,
+    ): ResponseEntity<TestExecutionResponseDTO> {
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val snippet =
+            snippetRepository
+                .findById(request.snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: ${request.snippetId}") }
+
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "edit",
+                snippetId = request.snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
+
+        if (!hasPermission) {
+            throw IllegalAccessException(
+                "You don't have permission to execute tests on this snippet",
+            )
+        }
+
+        val result =
+            printScriptServiceClient.executeTest(
+                container = snippet.bucketContainer,
+                key =
+                    snippet.bucketKey
+                        ?: throw IllegalStateException("Snippet has no bucket key"),
+                version = request.version,
+                testId = request.testId,
+                userId = userId,
+            )
+
+        return ResponseEntity.ok(result)
+    }
+
+    @PostMapping("/execute/async")
+    fun executeTestAsync(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
         @RequestParam("testId") testId: Long,
-    ): ResponseEntity<TestExecutionResponseDTO> {
+    ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         val snippet =
@@ -47,16 +90,19 @@ class TestController(
             )
         }
 
-        val result =
-            printScriptServiceClient.executeTest(
-                container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
+        val requestId =
+            asyncTaskProducer.requestTesting(
+                snippetId = snippetId,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey!!,
                 version = version,
-                testId = testId,
             )
 
-        return ResponseEntity.ok(result)
+        return ResponseEntity.accepted().body(
+            mapOf(
+                "requestId" to requestId,
+                "message" to "Test execution request accepted. Processing asynchronously.",
+            ),
+        )
     }
 }

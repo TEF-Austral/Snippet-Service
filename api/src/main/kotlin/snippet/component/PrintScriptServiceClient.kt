@@ -3,14 +3,14 @@ package snippet.component
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.postForObject
 import org.springframework.web.util.UriComponentsBuilder
-import snippet.dtos.AnalyzerRuleDTO
 import snippet.dtos.FormatConfigDTO
-import snippet.dtos.FormatterRuleDTO
+import snippet.dtos.TestDTO
+import snippet.dtos.requests.CreateTestRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
 import snippet.dtos.responses.ValidationResponseDTO
 
@@ -24,6 +24,7 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
+        userId: String,
     ): ValidationResponseDTO {
         val uri =
             UriComponentsBuilder
@@ -31,6 +32,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         return restTemplate.getForObject(
@@ -62,6 +64,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         config: FormatConfigDTO,
+        userId: String,
     ): String {
         val uri =
             UriComponentsBuilder
@@ -69,6 +72,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         val headers =
@@ -86,6 +90,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         config: FormatConfigDTO,
+        userId: String,
     ): String {
         val uri =
             UriComponentsBuilder
@@ -93,6 +98,7 @@ class PrintScriptServiceClient(
                 .queryParam("container", container)
                 .queryParam("key", key)
                 .queryParam("version", version)
+                .queryParam("userId", userId)
                 .toUriString()
 
         val headers =
@@ -110,6 +116,7 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         testId: Long,
+        userId: String,
     ): TestExecutionResponseDTO {
         val uri =
             UriComponentsBuilder
@@ -118,80 +125,11 @@ class PrintScriptServiceClient(
                 .queryParam("key", key)
                 .queryParam("version", version)
                 .queryParam("testId", testId)
+                .queryParam("userId", userId)
                 .toUriString()
 
         return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
-    }
-
-    fun getFormatterConfig(): List<FormatterRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/format")
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
-    }
-
-    fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/update/format")
-                .toUriString()
-
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-
-        val requestBody = mapOf("rules" to rules)
-        val request = HttpEntity(requestBody, headers)
-
-        val response =
-            restTemplate.exchange(
-                uri,
-                org.springframework.http.HttpMethod.PUT,
-                request,
-                Array<FormatterRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
-    }
-
-    fun getAnalyzerConfig(): List<AnalyzerRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/analyze")
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
-    }
-
-    fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/update/analyze")
-                .toUriString()
-
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-
-        val requestBody = mapOf("rules" to rules)
-        val request = HttpEntity(requestBody, headers)
-
-        val response =
-            restTemplate.exchange(
-                uri,
-                org.springframework.http.HttpMethod.PUT,
-                request,
-                Array<AnalyzerRuleDTO>::class.java,
-            )
-
-        return response.body?.toList() ?: emptyList()
     }
 
     fun downloadFormatted(
@@ -216,5 +154,48 @@ class PrintScriptServiceClient(
 
         return restTemplate.postForObject(uri, request, ByteArray::class.java)
             ?: throw IllegalStateException("Failed to download formatted content")
+    }
+
+    fun createTestCase(request: CreateTestRequestDTO): TestDTO {
+        val url = "$printScriptServiceUrl/tests"
+
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+        val requestEntity = HttpEntity(request, headers)
+
+        val response = restTemplate.postForEntity(url, requestEntity, TestDTO::class.java)
+        return response.body ?: throw IllegalStateException("Failed to create test case")
+    }
+
+    fun getTestsBySnippet(snippetId: Long): List<TestDTO> {
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl("$printScriptServiceUrl/tests")
+                .queryParam("snippetId", snippetId)
+                .toUriString()
+
+        val response =
+            restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                null,
+                Array<TestDTO>::class.java,
+            )
+
+        return response.body?.toList() ?: emptyList()
+    }
+
+    fun getTestById(id: Long): TestDTO {
+        val url = "$printScriptServiceUrl/tests/$id"
+
+        return restTemplate.getForObject(url, TestDTO::class.java)
+            ?: throw NoSuchElementException("Test not found: $id")
+    }
+
+    fun deleteTestCase(id: Long) {
+        val url = "$printScriptServiceUrl/tests/$id"
+        restTemplate.delete(url)
     }
 }
