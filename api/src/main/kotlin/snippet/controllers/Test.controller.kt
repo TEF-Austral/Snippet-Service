@@ -96,7 +96,6 @@ class TestController(
                 bucketContainer = snippet.bucketContainer,
                 bucketKey = snippet.bucketKey!!,
                 version = version,
-                testId = testId,
             )
 
         return ResponseEntity.accepted().body(
