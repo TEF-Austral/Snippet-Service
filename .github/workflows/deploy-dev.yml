@@ -35,13 +35,6 @@ jobs:
       - name: Grant execute permission
         run: chmod +x ./gradlew
 
-
-      - name: Publish to GitHub Packages
-        run: ./gradlew publish --no-daemon
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       # ========== BUILD GRADLE ==========
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
@@ -51,6 +44,14 @@ jobs:
           REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
           AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
           AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+
+
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ========== BUILD & PUSH DOCKER ==========
       - name: Set image name
