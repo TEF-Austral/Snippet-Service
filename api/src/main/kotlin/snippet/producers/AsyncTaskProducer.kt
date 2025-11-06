@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import requests.FormattingRequestEvent
 import requests.LintingRequestEvent
-import snippet.requests.TestingRequestEvent
+import requests.TestingRequestEvent
 import java.util.UUID
 
 @Component
