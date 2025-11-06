@@ -116,4 +116,13 @@ class SnippetController(
         val result = service.getMySnippets(userId, page, pageSize, filterDTO)
         return ResponseEntity.ok(result)
     }
+
+
+    @GetMapping("/MySnippetsThatHavePermission")
+    fun getSnippetsThatUserHavePermission(){
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        service.getSnippetsThatUserHavePermission(userId)
+        return
+    }
+
 }
