@@ -123,21 +123,6 @@ class PrintScriptServiceClient(
             ?: throw IllegalStateException("Failed to execute test")
     }
 
-    // ============================================================================
-    // MÉTODOS MODIFICADOS - Agregar parámetro userId
-    // ============================================================================
-
-    fun getFormatterConfig(userId: String): List<FormatterRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/format")
-                .queryParam("userId", userId) // ✅ Agregar userId como query param
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
-    }
-
     fun updateFormatterConfig(
         userId: String,
         rules: List<FormatterRuleDTO>,
@@ -165,17 +150,6 @@ class PrintScriptServiceClient(
             )
 
         return response.body?.toList() ?: emptyList()
-    }
-
-    fun getAnalyzerConfig(userId: String): List<AnalyzerRuleDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/config/analyze")
-                .queryParam("userId", userId) // ✅ Agregar userId como query param
-                .toUriString()
-
-        val response = restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)
-        return response?.toList() ?: emptyList()
     }
 
     fun updateAnalyzerConfig(

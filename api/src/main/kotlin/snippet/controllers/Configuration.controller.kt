@@ -1,7 +1,6 @@
 package snippet.controllers
 
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,14 +18,6 @@ class ConfigurationController(
     private val printScriptServiceClient: PrintScriptServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
-
-    @GetMapping("/format")
-    fun getFormatterConfig(): ResponseEntity<List<FormatterRuleDTO>> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-        val rules = printScriptServiceClient.getFormatterConfig(userId)
-        return ResponseEntity.ok(rules)
-    }
-
     @PutMapping("/update/format")
     fun updateFormatterConfig(
         @RequestBody request: UpdateFormatterConfigRequestDTO,
@@ -34,13 +25,6 @@ class ConfigurationController(
         val userId = authenticatedUserProvider.getCurrentUserId()
         val updatedRules = printScriptServiceClient.updateFormatterConfig(userId, request.rules)
         return ResponseEntity.ok(updatedRules)
-    }
-
-    @GetMapping("/analyze")
-    fun getAnalyzerConfig(): ResponseEntity<List<AnalyzerRuleDTO>> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-        val rules = printScriptServiceClient.getAnalyzerConfig(userId)
-        return ResponseEntity.ok(rules)
     }
 
     @PutMapping("/update/analyze")
