@@ -72,7 +72,6 @@ class AsyncTaskProducer(
         val event =
             LintingRequestEvent(
                 requestId = requestId,
-                snippetId = snippetId,
                 bucketContainer = bucketContainer,
                 bucketKey = bucketKey,
                 languageId = languageId,
