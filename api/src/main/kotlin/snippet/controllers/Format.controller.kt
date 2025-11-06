@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
+import snippet.producers.AsyncTaskProducer
 import snippet.dtos.FormatConfigDTO
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
@@ -24,6 +25,7 @@ class FormatController(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
+    private val asyncTaskProducer: AsyncTaskProducer,
 ) {
 
     @PostMapping
@@ -146,5 +148,46 @@ class FormatController(
                 "attachment; filename=\"${snippet.name}-formatted.ps\"",
             ).contentType(MediaType.TEXT_PLAIN)
             .body(resource)
+    }
+
+    @PostMapping("/async")
+    fun formatSnippetAsync(
+        @RequestParam("snippetId") snippetId: Long,
+        @RequestParam("version") version: String,
+    ): ResponseEntity<Map<String, String>> {
+        val userId = authenticatedUserProvider.getCurrentUserId()
+
+        val snippet =
+            snippetRepository
+                .findById(snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "edit",
+                snippetId = snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
+
+        if (!hasPermission) {
+            throw IllegalAccessException("You don't have permission to format this snippet")
+        }
+
+        val requestId =
+            asyncTaskProducer.requestFormatting(
+                snippetId = snippetId,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey!!,
+                version = version,
+                userId = userId,
+            )
+
+        return ResponseEntity.accepted().body(
+            mapOf(
+                "requestId" to requestId,
+                "message" to "Formatting request accepted. Processing asynchronously.",
+            ),
+        )
     }
 }

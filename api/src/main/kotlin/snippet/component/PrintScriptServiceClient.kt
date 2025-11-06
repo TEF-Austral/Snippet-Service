@@ -6,7 +6,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.postForObject
 import org.springframework.web.util.UriComponentsBuilder
 import snippet.dtos.AnalyzerRuleDTO
 import snippet.dtos.FormatConfigDTO
@@ -124,20 +123,29 @@ class PrintScriptServiceClient(
             ?: throw IllegalStateException("Failed to execute test")
     }
 
-    fun getFormatterConfig(): List<FormatterRuleDTO> {
+    // ============================================================================
+    // MÉTODOS MODIFICADOS - Agregar parámetro userId
+    // ============================================================================
+
+    fun getFormatterConfig(userId: String): List<FormatterRuleDTO> {
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/config/format")
+                .queryParam("userId", userId) // ✅ Agregar userId como query param
                 .toUriString()
 
         val response = restTemplate.getForObject(uri, Array<FormatterRuleDTO>::class.java)
         return response?.toList() ?: emptyList()
     }
 
-    fun updateFormatterConfig(rules: List<FormatterRuleDTO>): List<FormatterRuleDTO> {
+    fun updateFormatterConfig(
+        userId: String,
+        rules: List<FormatterRuleDTO>,
+    ): List<FormatterRuleDTO> {
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/config/update/format")
+                .queryParam("userId", userId) // ✅ Agregar userId como query param
                 .toUriString()
 
         val headers =
@@ -159,20 +167,25 @@ class PrintScriptServiceClient(
         return response.body?.toList() ?: emptyList()
     }
 
-    fun getAnalyzerConfig(): List<AnalyzerRuleDTO> {
+    fun getAnalyzerConfig(userId: String): List<AnalyzerRuleDTO> {
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/config/analyze")
+                .queryParam("userId", userId) // ✅ Agregar userId como query param
                 .toUriString()
 
         val response = restTemplate.getForObject(uri, Array<AnalyzerRuleDTO>::class.java)
         return response?.toList() ?: emptyList()
     }
 
-    fun updateAnalyzerConfig(rules: List<AnalyzerRuleDTO>): List<AnalyzerRuleDTO> {
+    fun updateAnalyzerConfig(
+        userId: String,
+        rules: List<AnalyzerRuleDTO>,
+    ): List<AnalyzerRuleDTO> {
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl("$printScriptServiceUrl/config/update/analyze")
+                .queryParam("userId", userId) // ✅ Agregar userId como query param
                 .toUriString()
 
         val headers =
