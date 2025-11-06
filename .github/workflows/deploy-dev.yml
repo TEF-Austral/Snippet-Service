@@ -35,6 +35,13 @@ jobs:
       - name: Grant execute permission
         run: chmod +x ./gradlew
 
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # ========== BUILD GRADLE ==========
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
