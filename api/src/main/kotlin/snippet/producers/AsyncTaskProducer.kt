@@ -11,19 +11,19 @@ import java.util.UUID
 
 @Component
 class FormattingRequestProducer(
-    @Value("\${redis.stream.formatting.request.key}") streamKey: String,
+    @Value("\${spring.redis.stream.formatting.request.key}") streamKey: String,
     redis: RedisTemplate<String, String>,
 ) : RedisStreamProducer(streamKey, redis)
 
 @Component
 class LintingRequestProducer(
-    @Value("\${redis.stream.linting.request.key}") streamKey: String,
+    @Value("\${spring.redis.stream.linting.request.key}") streamKey: String,
     redis: RedisTemplate<String, String>,
 ) : RedisStreamProducer(streamKey, redis)
 
 @Component
 class TestingRequestProducer(
-    @Value("\${redis.stream.testing.request.key}") streamKey: String,
+    @Value("\${spring.redis.stream.testing.request.key}") streamKey: String,
     redis: RedisTemplate<String, String>,
 ) : RedisStreamProducer(streamKey, redis)
 

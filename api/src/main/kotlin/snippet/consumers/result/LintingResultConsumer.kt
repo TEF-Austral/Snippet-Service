@@ -14,8 +14,8 @@ import java.time.Duration
 @Component
 @Profile("!test")
 class LintingResultConsumer(
-    @Value("\${redis.stream.linting.result.key}") streamKey: String,
-    @Value("\${redis.consumer.group}") consumerGroup: String,
+    @Value("\${spring.redis.stream.linting.result.key}") streamKey: String,
+    @Value("\${spring.redis.consumer.group}") consumerGroup: String,
     redis: RedisTemplate<String, String>,
     private val handler: LintingResultHandler,
 ) : RedisStreamConsumer<LintingResultEvent>(streamKey, consumerGroup, redis) {

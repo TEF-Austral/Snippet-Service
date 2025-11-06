@@ -14,8 +14,8 @@ import java.time.Duration
 @Component
 @Profile("!test")
 class FormattingResultConsumer(
-    @Value("\${redis.stream.formatting.result.key}") streamKey: String,
-    @Value("\${redis.consumer.group}") consumerGroup: String,
+    @Value("\${spring.redis.stream.formatting.result.key}") streamKey: String,
+    @Value("\${spring.redis.consumer.group}") consumerGroup: String,
     redis: RedisTemplate<String, String>,
     private val handler: FormattingResultHandler,
 ) : RedisStreamConsumer<FormattingResultEvent>(streamKey, consumerGroup, redis) {

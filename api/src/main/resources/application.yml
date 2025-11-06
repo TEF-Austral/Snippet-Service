@@ -19,6 +19,8 @@ spring:
 
   redis:
     stream:
+      snippet:
+        key: snippet-events
       formatting:
         request:
           key: formatting-requests

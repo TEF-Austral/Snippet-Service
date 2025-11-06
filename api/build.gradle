@@ -10,8 +10,10 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation 'org.austral.ingsis:redis-streams-mvc:0.1.13'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+    implementation('org.austral.ingsis:redis-streams-mvc:0.1.13') {
+        exclude group: 'org.springframework.boot'
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation project(':events')
     implementation project(':common')
 }

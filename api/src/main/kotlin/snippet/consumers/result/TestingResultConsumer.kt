@@ -15,8 +15,8 @@ import java.time.Duration
 @Component
 @Profile("!test")
 class TestingResultConsumer(
-    @Value("\${redis.stream.testing.result.key}") streamKey: String,
-    @Value("\${redis.consumer.group}") consumerGroup: String,
+    @Value("\${spring.redis.stream.testing.result.key}") streamKey: String,
+    @Value("\${spring.redis.consumer.group}") consumerGroup: String,
     private val handler: TestingResultHandler,
     redis: RedisTemplate<String, String>,
 ) : RedisStreamConsumer<TestingResultEvent>(streamKey, consumerGroup, redis) {
