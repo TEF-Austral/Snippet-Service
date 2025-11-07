@@ -10,9 +10,16 @@ permissions:
   packages: write
 
 jobs:
+  # ========== VERSIONING ==========
+  versioning: # <-- ADDED
+    uses: ./.github/workflows/versioning.yml
+    with:
+      commit_version: true
+    secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
   build-and-deploy-prod:
+    needs: versioning # <-- ADDED
     runs-on: ubuntu-latest
     environment: production
 
@@ -90,7 +97,7 @@ jobs:
               "client_payload": {
                 "service": "${{ github.event.repository.name }}",
                 "environment": "prod",
-                "version": "${{ needs.versioning.outputs.version }}",
+                "version": "${{ needs.versioning.outputs.version }}", # <-- Now valid
                 "sha": "${{ github.sha }}"
               }
             }'

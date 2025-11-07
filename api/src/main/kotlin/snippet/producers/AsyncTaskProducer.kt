@@ -51,6 +51,7 @@ class AsyncTaskProducer(
                 languageId = languageId,
                 version = version,
                 userId = userId,
+                snippetId = snippetId,
             )
 
         formattingProducer.emit(event)
@@ -77,6 +78,7 @@ class AsyncTaskProducer(
                 languageId = languageId,
                 version = version,
                 userId = userId,
+                snippetId = snippetId,
             )
 
         lintingProducer.emit(event)

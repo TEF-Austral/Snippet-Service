@@ -7,4 +7,5 @@ data class LintingRequestEvent(
     val version: String,
     val languageId: String,
     val userId: String,
+    val snippetId: Long,
 )
