@@ -1,6 +1,5 @@
 package snippet.services
 
-import events.SnippetEventProducer
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
@@ -16,6 +15,7 @@ import snippet.dtos.responses.SnippetResponseDTO
 import snippet.dtos.SortField
 import snippet.dtos.SortOrder
 import snippet.dtos.requests.UpdateSnippetRequestDTO
+import snippet.dtos.responses.StreamSnippetResponseDTO
 import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
@@ -27,7 +27,6 @@ class SnippetServiceImpl(
     private val assetServiceClient: AssetServiceClient,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val printScriptServiceClient: PrintScriptServiceClient,
-    private val eventProducer: SnippetEventProducer,
 ) : SnippetService {
 
     @Transactional
@@ -161,7 +160,7 @@ class SnippetServiceImpl(
         )
     }
 
-    override fun getSnippetsThatUserHaveAcces(
+    override fun getSnippetsThatUserHaveAccess(
         requesterId: String,
         page: Int,
         pageSize: Int,
@@ -178,6 +177,24 @@ class SnippetServiceImpl(
             count = pageResult.totalElements,
             snippets = pageResult.content.map { it.toDto() },
         )
+    }
+
+    override fun getSnippetsThatUserHavePermission(
+        requesterId: String,
+    ): List<StreamSnippetResponseDTO> {
+        val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
+        val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
+        val snippetEntities = repository.findAllById(snippetIds)
+
+        return snippetEntities.map { snippet ->
+            StreamSnippetResponseDTO(
+                snippetId = snippet.id ?: 0L,
+                bucketContainer = snippet.bucketContainer,
+                bucketKey = snippet.bucketKey ?: "",
+                language = snippet.language,
+                version = snippet.version,
+            )
+        }
     }
 
     override fun getAllMySnippets(
@@ -314,6 +331,7 @@ class SnippetServiceImpl(
                     container = snippet.bucketContainer,
                     key = snippet.bucketKey!!,
                     version = snippet.version,
+                    userId = snippet.ownerId,
                 )
 
             if (validation.isValid) {

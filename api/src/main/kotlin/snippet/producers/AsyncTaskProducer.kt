@@ -4,9 +4,9 @@ import org.austral.ingsis.redis.RedisStreamProducer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
-import request.FormattingRequestEvent
-import request.LintingRequestEvent
-import request.TestingRequestEvent
+import requests.FormattingRequestEvent
+import requests.LintingRequestEvent
+import requests.TestingRequestEvent
 import java.util.UUID
 
 @Component
@@ -40,14 +40,15 @@ class AsyncTaskProducer(
         bucketKey: String,
         version: String,
         userId: String,
+        languageId: String,
     ): String {
         val requestId = UUID.randomUUID().toString()
         val event =
             FormattingRequestEvent(
                 requestId = requestId,
-                snippetId = snippetId,
                 bucketContainer = bucketContainer,
                 bucketKey = bucketKey,
+                languageId = languageId,
                 version = version,
                 userId = userId,
             )
@@ -64,15 +65,16 @@ class AsyncTaskProducer(
         bucketContainer: String,
         bucketKey: String,
         version: String,
+        languageId: String,
         userId: String,
     ): String {
         val requestId = UUID.randomUUID().toString()
         val event =
             LintingRequestEvent(
                 requestId = requestId,
-                snippetId = snippetId,
                 bucketContainer = bucketContainer,
                 bucketKey = bucketKey,
+                languageId = languageId,
                 version = version,
                 userId = userId,
             )
@@ -89,7 +91,6 @@ class AsyncTaskProducer(
         bucketContainer: String,
         bucketKey: String,
         version: String,
-        testId: Long,
     ): String {
         val requestId = UUID.randomUUID().toString()
         val event =
@@ -99,7 +100,6 @@ class AsyncTaskProducer(
                 bucketContainer = bucketContainer,
                 bucketKey = bucketKey,
                 version = version,
-                testId = testId,
             )
 
         testingProducer.emit(event)

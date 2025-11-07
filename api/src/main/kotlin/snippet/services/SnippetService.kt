@@ -5,6 +5,7 @@ import snippet.dtos.PaginatedSnippetsDTO
 import snippet.dtos.SnippetFilterDTO
 import snippet.dtos.responses.SnippetResponseDTO
 import snippet.dtos.requests.UpdateSnippetRequestDTO
+import snippet.dtos.responses.StreamSnippetResponseDTO
 
 interface SnippetService {
     fun createSnippet(
@@ -29,11 +30,13 @@ interface SnippetService {
         requesterId: String,
     )
 
-    fun getSnippetsThatUserHaveAcces(
+    fun getSnippetsThatUserHaveAccess(
         requesterId: String,
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO
+
+    fun getSnippetsThatUserHavePermission(requesterId: String): List<StreamSnippetResponseDTO>
 
     fun getSnippetThatUserIsOwner(
         requesterId: String,

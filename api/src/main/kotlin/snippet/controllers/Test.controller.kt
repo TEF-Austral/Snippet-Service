@@ -2,11 +2,13 @@ package snippet.controllers
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
+import snippet.dtos.requests.TestExecutionRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
 import snippet.producers.AsyncTaskProducer
 import snippet.repositories.SnippetRepository
@@ -24,22 +26,20 @@ class TestController(
 
     @PostMapping("/execute")
     fun executeTest(
-        @RequestParam("snippetId") snippetId: Long,
-        @RequestParam("version") version: String,
-        @RequestParam("testId") testId: Long,
+        @RequestBody request: TestExecutionRequestDTO,
     ): ResponseEntity<TestExecutionResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         val snippet =
             snippetRepository
-                .findById(snippetId)
-                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+                .findById(request.snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: ${request.snippetId}") }
 
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = userId,
                 action = "edit",
-                snippetId = snippetId.toString(),
+                snippetId = request.snippetId.toString(),
                 ownerId = snippet.ownerId,
             )
 
@@ -55,8 +55,9 @@ class TestController(
                 key =
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
-                version = version,
-                testId = testId,
+                version = request.version,
+                testId = request.testId,
+                userId = userId,
             )
 
         return ResponseEntity.ok(result)
@@ -95,7 +96,6 @@ class TestController(
                 bucketContainer = snippet.bucketContainer,
                 bucketKey = snippet.bucketKey!!,
                 version = version,
-                testId = testId,
             )
 
         return ResponseEntity.accepted().body(

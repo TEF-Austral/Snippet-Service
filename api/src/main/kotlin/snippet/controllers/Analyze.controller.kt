@@ -54,42 +54,7 @@ class AnalyzeController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-            )
-
-        return ResponseEntity.ok(result)
-    }
-
-    @GetMapping("/compile")
-    fun compileSnippet(
-        @RequestParam("snippetId") snippetId: Long,
-        @RequestParam("version") version: String,
-    ): ResponseEntity<ValidationResponseDTO> {
-        val userId = authenticatedUserProvider.getCurrentUserId()
-
-        val snippet =
-            snippetRepository
-                .findById(snippetId)
-                .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
-
-        val hasPermission =
-            authorizationServiceClient.checkPermission(
                 userId = userId,
-                action = "read",
-                snippetId = snippetId.toString(),
-                ownerId = snippet.ownerId,
-            )
-
-        if (!hasPermission) {
-            throw IllegalAccessException("You don't have permission to compile this snippet")
-        }
-
-        val result =
-            printScriptServiceClient.compileSnippet(
-                container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
-                version = version,
             )
 
         return ResponseEntity.ok(result)
@@ -126,6 +91,7 @@ class AnalyzeController(
                 bucketKey = snippet.bucketKey!!,
                 version = version,
                 userId = userId,
+                languageId = snippet.id?.toString() ?: "",
             )
 
         return ResponseEntity.accepted().body(

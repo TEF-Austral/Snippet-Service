@@ -27,7 +27,6 @@ class FormatController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
-
     @PostMapping
     fun formatSnippet(
         @RequestParam("snippetId") snippetId: Long,
@@ -61,6 +60,7 @@ class FormatController(
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 config = config,
+                userId = userId,
             )
 
         return ResponseEntity.ok(formattedContent)
@@ -99,6 +99,7 @@ class FormatController(
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 config = config,
+                userId = userId,
             )
 
         return ResponseEntity.ok(formattedContent)
@@ -181,6 +182,7 @@ class FormatController(
                 bucketKey = snippet.bucketKey!!,
                 version = version,
                 userId = userId,
+                languageId = snippet.id?.toString() ?: "",
             )
 
         return ResponseEntity.accepted().body(

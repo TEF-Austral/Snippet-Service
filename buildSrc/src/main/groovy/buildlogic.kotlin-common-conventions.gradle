@@ -43,9 +43,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation('org.austral.ingsis:redis-streams-mvc:0.1.13') {
-        exclude group: 'org.springframework.boot'
-    }
+    implementation('org.austral.ingsis:redis-streams-mvc:0.1.13')
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 }
@@ -104,8 +102,8 @@ publishing {
             name = "PrintScriptPackages"
             url = uri("https://maven.pkg.github.com/TEF-Austral/Snippet-Service")
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = project.findProperty("gpr.user") ?:System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }

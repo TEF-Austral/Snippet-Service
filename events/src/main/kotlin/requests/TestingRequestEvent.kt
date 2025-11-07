@@ -1,4 +1,4 @@
-package request
+package requests
 
 data class TestingRequestEvent(
     val requestId: String,
@@ -6,5 +6,4 @@ data class TestingRequestEvent(
     val bucketContainer: String,
     val bucketKey: String,
     val version: String,
-    val testId: Long,
 )
