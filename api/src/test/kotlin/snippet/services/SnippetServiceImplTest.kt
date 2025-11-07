@@ -19,6 +19,10 @@ import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyLong // <-- IMPORTACIÓN AÑADIDA
+import org.mockito.ArgumentMatchers.anyString // <-- IMPORTACIÓN AÑADIDA
+import org.mockito.Mockito.never
+import snippet.producers.AsyncTaskProducer
 
 @ExtendWith(MockitoExtension::class)
 class SnippetServiceImplTest {
@@ -34,6 +38,9 @@ class SnippetServiceImplTest {
 
     @Mock
     private lateinit var printScriptServiceClient: PrintScriptServiceClient
+
+    @Mock
+    private lateinit var asyncTaskProducer: AsyncTaskProducer
 
     @InjectMocks
     private lateinit var service: SnippetServiceImpl
@@ -211,7 +218,7 @@ class SnippetServiceImplTest {
             UpdateSnippetRequestDTO(
                 name = "New Name",
                 description = "New Desc",
-                content = "new content",
+                content = "new content", // <-- El contenido se actualiza
                 language = Language.JAVA,
                 version = "11",
             )
@@ -237,7 +244,7 @@ class SnippetServiceImplTest {
     }
 
     @Test
-    fun `updateSnippet should update only provided fields`() {
+    fun `updateSnippet should update only provided fields and not trigger`() {
         val snippetId = 1L
         val requesterId = "user123"
         val existing =
@@ -255,7 +262,7 @@ class SnippetServiceImplTest {
             UpdateSnippetRequestDTO(
                 name = "New Name",
                 description = null,
-                content = null,
+                content = null, // <-- El contenido NO se actualiza
                 language = null,
                 version = null,
             )
@@ -277,6 +284,13 @@ class SnippetServiceImplTest {
         assertEquals("New Name", existing.name)
         assertEquals("Old Desc", existing.description)
         assertEquals(Language.PRINTSCRIPT, existing.language)
+
+        // Verifica que NO se disparó el evento de testing
+        // <-- LÍNEA CORREGIDA
+        verify(
+            asyncTaskProducer,
+            never(),
+        ).requestTesting(anyLong(), anyString(), anyString(), anyString())
     }
 
     @Test
@@ -389,5 +403,65 @@ class SnippetServiceImplTest {
         } catch (e: NoSuchElementException) {
             assertEquals("Snippet not found: $snippetId", e.message)
         }
+    }
+
+    // --- NUEVO TEST ---
+    @Test
+    fun `updateSnippet should trigger async testing when content is updated`() {
+        val snippetId = 1L
+        val requesterId = "user123"
+        val existing =
+            Snippet(
+                id = snippetId,
+                name = "Test Snippet",
+                description = "Test Desc",
+                ownerId = "owner123",
+                bucketKey = "test-key",
+                bucketContainer = "snippets",
+                language = Language.PRINTSCRIPT,
+                version = "1.0",
+                author = "Author",
+            )
+        val updateDTO =
+            UpdateSnippetRequestDTO(
+                content = "new content", // <-- El contenido se actualiza
+                name = null,
+                description = null,
+                language = null,
+                version = null,
+            )
+
+        // Arrange
+        `when`(repository.findById(snippetId)).thenReturn(Optional.of(existing))
+        `when`(
+            authorizationServiceClient.checkPermission(
+                requesterId,
+                "edit",
+                snippetId.toString(),
+                "owner123",
+            ),
+        ).thenReturn(true)
+        `when`(repository.save(any(Snippet::class.java))).thenReturn(existing)
+        `when`(
+            assetServiceClient.getAsset(
+                "snippets",
+                "test-key",
+            ),
+        ).thenReturn("new content") // Para el toDto()
+
+        // Act
+        service.updateSnippet(snippetId, updateDTO, requesterId)
+
+        // Assert
+        // Verifica que el contenido se guardó
+        verify(assetServiceClient).createOrUpdateAsset("snippets", "test-key", "new content")
+
+        // Verifica que se disparó el evento de testing asíncrono
+        verify(asyncTaskProducer).requestTesting(
+            snippetId = 1L,
+            bucketContainer = "snippets",
+            bucketKey = "test-key",
+            version = "1.0",
+        )
     }
 }
