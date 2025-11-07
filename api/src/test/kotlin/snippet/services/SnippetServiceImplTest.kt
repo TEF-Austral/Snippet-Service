@@ -1,7 +1,6 @@
 package snippet.services
 
 import common.Language
-import events.SnippetEventProducer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -35,9 +34,6 @@ class SnippetServiceImplTest {
 
     @Mock
     private lateinit var printScriptServiceClient: PrintScriptServiceClient
-
-    @Mock
-    private lateinit var eventProducer: SnippetEventProducer
 
     @InjectMocks
     private lateinit var service: SnippetServiceImpl
