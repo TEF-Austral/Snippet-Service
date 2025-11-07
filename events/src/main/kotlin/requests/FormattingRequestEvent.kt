@@ -7,4 +7,5 @@ data class FormattingRequestEvent(
     val languageId: String,
     val version: String,
     val userId: String,
+    val snippetId: Long,
 )
