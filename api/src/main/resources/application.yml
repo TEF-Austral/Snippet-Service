@@ -36,6 +36,11 @@ spring:
           key: testing-requests
         result:
           key: testing-results
+      rules:
+        analyzer:
+          updated: analyzer-rules-updated
+        formatter:
+          updated: formatter-rules-updated
     consumer:
       group: snippet-service-group
 
