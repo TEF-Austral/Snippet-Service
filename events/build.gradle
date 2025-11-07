@@ -13,7 +13,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis") {
     exclude group: "io.lettuce", module: "lettuce-core" // Excluimos Lettuce
     }
-    implementation("redis.clients:jedis") // Añadimos Jedis
+    implementation("redis.clients:jedis")
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation project(':common')
 }
