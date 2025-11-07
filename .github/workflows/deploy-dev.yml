@@ -14,7 +14,7 @@ jobs:
   versioning:
     uses: ./.github/workflows/versioning.yml
     with:
-      commit_version: false
+      commit_version: false  # No commitear en DEV
     secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
@@ -40,10 +40,7 @@ jobs:
         run: ./gradlew build --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
-          AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
-          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ========== BUILD & PUSH DOCKER ==========
       - name: Set image name
@@ -57,6 +54,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REDIS_TOKEN: ${{ secrets.REDIS_TOKEN }}
+          AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
+          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
 
       - name: Build and push Docker image (DEV)
         uses: docker/build-push-action@v5
@@ -65,8 +66,8 @@ jobs:
           file: ./Dockerfile.dev
           push: true
           build-args: |
-            GITHUB_ACTOR=${{ github.actor }}
-            REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
+            USERNAME=${{ github.actor }}
+            TOKEN=${{ secrets.GITHUB_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:dev
             ${{ steps.image.outputs.name }}:dev-${{ needs.versioning.outputs.version }}
