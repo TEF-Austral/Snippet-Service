@@ -9,8 +9,8 @@ spring:
     service:
       url: ${ASSET_SERVICE_URL}
 
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: false
-    hibernate:
-      ddl-auto: validate
+#  jpa:
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    show-sql: false
+#    hibernate:
+#      ddl-auto: validate
