@@ -1,6 +1,6 @@
 package snippet.consumers.notification
 
-import notifications.FormattingRulesUpdatedEvent
+import events.FormattingRulesUpdatedEvent
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -23,7 +23,7 @@ class FormattingRulesUpdatedConsumer(
     override fun onMessage(record: ObjectRecord<String, FormattingRulesUpdatedEvent>) {
         val event = record.value
         println("📨 [Snippet Service] Recibido FormattingRulesUpdatedEvent para: ${event.userId}")
-        handler.handleFormattingRulesUpdate(event.userId) // Llama al otro método del handler
+        handler.handleFormattingRulesUpdate(event.userId)
     }
 
     override fun options(): StreamReceiver.StreamReceiverOptions<
