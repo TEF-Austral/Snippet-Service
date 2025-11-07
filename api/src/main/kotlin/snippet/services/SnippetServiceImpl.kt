@@ -20,6 +20,7 @@ import snippet.entities.ComplianceStatus
 import snippet.entities.Snippet
 import snippet.repositories.SnippetRepository
 import snippet.repositories.SnippetSpecifications
+import snippet.producers.AsyncTaskProducer // <-- 1. IMPORTAR EL PRODUCER
 
 @Service
 class SnippetServiceImpl(
@@ -27,6 +28,7 @@ class SnippetServiceImpl(
     private val assetServiceClient: AssetServiceClient,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val printScriptServiceClient: PrintScriptServiceClient,
+    private val asyncTaskProducer: AsyncTaskProducer,
 ) : SnippetService {
 
     @Transactional
@@ -284,6 +286,9 @@ class SnippetServiceImpl(
 
             // Re-validar después de actualizar contenido
             validateAndUpdateCompliance(existing)
+
+            // <-- 4. LLAMAR A LA NUEVA FUNCIÓN HELPER
+            triggerAsyncTesting(existing)
         }
 
         val saved = repository.save(existing)
@@ -348,6 +353,20 @@ class SnippetServiceImpl(
             snippet.complianceStatus = ComplianceStatus.FAILED
             snippet.lastValidationError = "Validation failed: ${e.message}"
         }
+    }
+
+    private fun triggerAsyncTesting(snippet: Snippet) {
+        val snippetId = snippet.id ?: return
+        val bucketKey = snippet.bucketKey ?: return
+
+        println("📤 [Snippet Service] Disparando tests asíncronos para snippet: $snippetId")
+
+        asyncTaskProducer.requestTesting(
+            snippetId = snippetId,
+            bucketContainer = snippet.bucketContainer,
+            bucketKey = bucketKey,
+            version = snippet.version,
+        )
     }
 
     private fun Snippet.toDto() =
