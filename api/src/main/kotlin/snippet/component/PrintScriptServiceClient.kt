@@ -198,4 +198,29 @@ class PrintScriptServiceClient(
         val url = "$printScriptServiceUrl/tests/$id"
         restTemplate.delete(url)
     }
+
+    fun validateContent(
+        content: String,
+        language: String,
+        version: String,
+    ): ValidationResponseDTO {
+        val url = "$printScriptServiceUrl/analyze/validate"
+
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+
+        val requestBody =
+            mapOf(
+                "content" to content,
+                "language" to language,
+                "version" to version,
+            )
+
+        val request = HttpEntity(requestBody, headers)
+
+        return restTemplate.postForObject(url, request, ValidationResponseDTO::class.java)
+            ?: throw IllegalStateException("Failed to validate content")
+    }
 }
