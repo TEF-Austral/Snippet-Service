@@ -10,9 +10,16 @@ permissions:
   packages: write
 
 jobs:
+  # ========== VERSIONING ==========
+  versioning: # <-- ADDED
+    uses: ./.github/workflows/versioning.yml
+    with:
+      commit_version: true
+    secrets: inherit
 
   # ========== BUILD & DEPLOY ==========
   build-and-deploy-prod:
+    needs: versioning # <-- ADDED
     runs-on: ubuntu-latest
     environment: production
 
@@ -75,7 +82,7 @@ jobs:
             REDIS_TOKEN=${{ secrets.REDIS_TOKEN }}
           tags: |
             ${{ steps.image.outputs.name }}:latest
-            ${{ steps.image.outputs.name }}:${{ needs.versioning.outputs.version }}
+            ${{ steps.image.outputs.name }}:${{ needs.versioning.outputs.version }} # <-- Now valid
             ${{ steps.image.outputs.name }}:${{ github.sha }}
 
       # ========== NOTIFY PROVISIONER ========== #
@@ -84,13 +91,13 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository_owner }}/png-provisioner/dispatches \
+            https_proxy://api.github.com/repos/${{ github.repository_owner }}/png-provisioner/dispatches \
             -d '{
               "event_type": "service_updated",
               "client_payload": {
                 "service": "${{ github.event.repository.name }}",
                 "environment": "prod",
-                "version": "${{ needs.versioning.outputs.version }}",
+                "version": "${{ needs.versioning.outputs.version }}", # <-- Now valid
                 "sha": "${{ github.sha }}"
               }
             }'
