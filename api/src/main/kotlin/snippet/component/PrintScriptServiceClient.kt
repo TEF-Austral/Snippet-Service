@@ -204,23 +204,23 @@ class PrintScriptServiceClient(
         language: String,
         version: String,
     ): ValidationResponseDTO {
-        val url = "$printScriptServiceUrl/analyze/validate"
+        val url = "$printScriptServiceUrl/validate"
 
         val headers =
             HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
+                contentType = MediaType.TEXT_PLAIN
             }
 
-        val requestBody =
-            mapOf(
-                "content" to content,
-                "language" to language,
-                "version" to version,
-            )
+        val uri =
+            UriComponentsBuilder
+                .fromHttpUrl(url)
+                .queryParam("language", language)
+                .queryParam("version", version)
+                .toUriString()
 
-        val request = HttpEntity(requestBody, headers)
+        val request = HttpEntity(content, headers)
 
-        return restTemplate.postForObject(url, request, ValidationResponseDTO::class.java)
+        return restTemplate.postForObject(uri, request, ValidationResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to validate content")
     }
 }
