@@ -44,12 +44,12 @@ class RulesUpdatedHandler(
                             userId = userId,
                         )
 
-                        // Pequeño delay entre cada mensaje
-                        Thread.sleep(100)
+                        println("📤 Request enviado con snippetID: ${snippet.id}")
                     } catch (e: Exception) {
                         println(
                             "❌ Error enviando validación para snippet ${snippet.id}: ${e.message}",
                         )
+                        e.printStackTrace()
                     }
                 }
 
@@ -98,13 +98,11 @@ class RulesUpdatedHandler(
                             languageId = snippet.language.name,
                             userId = userId,
                         )
-
-                        // Pequeño delay entre cada mensaje
-                        Thread.sleep(100)
                     } catch (e: Exception) {
                         println(
                             "❌ Error enviando formateo para snippet ${snippet.id}: ${e.message}",
                         )
+                        e.printStackTrace()
                     }
                 }
 
