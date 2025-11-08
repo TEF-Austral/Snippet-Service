@@ -23,12 +23,20 @@ class AnalyzeController(
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
 
+    private fun normalizeVersion(version: String): String =
+        when (version) {
+            "1.1.0" -> "1.1"
+            "1.0.0" -> "1.0"
+            else -> version
+        }
+
     @GetMapping
     fun analyzeSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        val normalizedVersion = normalizeVersion(version)
 
         val snippet =
             snippetRepository
@@ -47,16 +55,14 @@ class AnalyzeController(
             throw IllegalAccessException("You don't have permission to analyze this snippet")
         }
 
-        val effectiveUserId = if (snippet.ownerId == userId) userId else snippet.ownerId
-
         val result =
             printScriptServiceClient.validateSnippet(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
-                version = version,
-                userId = effectiveUserId,
+                version = normalizedVersion,
+                userId = userId,
             )
 
         return ResponseEntity.ok(result)
@@ -68,6 +74,7 @@ class AnalyzeController(
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        val normalizedVersion = normalizeVersion(version)
 
         val snippet =
             snippetRepository
@@ -92,7 +99,7 @@ class AnalyzeController(
                 key =
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
-                version = version,
+                version = normalizedVersion,
             )
 
         return ResponseEntity.ok(result)
@@ -104,6 +111,7 @@ class AnalyzeController(
         @RequestParam("version") version: String,
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        val normalizedVersion = normalizeVersion(version)
 
         val snippet =
             snippetRepository
@@ -127,7 +135,7 @@ class AnalyzeController(
                 snippetId = snippetId,
                 bucketContainer = snippet.bucketContainer,
                 bucketKey = snippet.bucketKey!!,
-                version = version,
+                version = normalizedVersion,
                 userId = userId,
                 languageId = snippet.id?.toString() ?: "",
             )
