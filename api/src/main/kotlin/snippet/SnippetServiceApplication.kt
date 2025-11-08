@@ -3,7 +3,7 @@ package snippet
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication(scanBasePackages = ["snippet", "events"])
+@SpringBootApplication(scanBasePackages = ["snippet", "events", "snippet.config"])
 class SnippetServiceApplication
 
 fun main(args: Array<String>) {
