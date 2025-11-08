@@ -71,6 +71,9 @@ class RulesUpdatedHandler(
         }
     }
 
+    /**
+     * Dispara el re-formateo para todos los snippets de un usuario.
+     */
     fun handleFormattingRulesUpdate(userId: String) {
         try {
             println(
@@ -109,6 +112,7 @@ class RulesUpdatedHandler(
 
                 if (!snippetPage.hasNext()) break
 
+                // Delay entre páginas
                 Thread.sleep(DELAY_BETWEEN_BATCHES)
                 page++
             }
