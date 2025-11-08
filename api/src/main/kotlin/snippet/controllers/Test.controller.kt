@@ -57,7 +57,6 @@ class TestController(
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = request.version,
                 testId = request.testId,
-                userId = userId,
             )
 
         return ResponseEntity.ok(result)

@@ -116,7 +116,6 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
         testId: Long,
-        userId: String,
     ): TestExecutionResponseDTO {
         val uri =
             UriComponentsBuilder
@@ -125,7 +124,6 @@ class PrintScriptServiceClient(
                 .queryParam("key", key)
                 .queryParam("version", version)
                 .queryParam("testId", testId)
-                .queryParam("userId", userId)
                 .toUriString()
 
         return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
