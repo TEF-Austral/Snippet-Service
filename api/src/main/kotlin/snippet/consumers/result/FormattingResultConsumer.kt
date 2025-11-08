@@ -25,17 +25,8 @@ class FormattingResultConsumer(
             val event = record.value
             println("📨 [Snippet Service] Received formatting RESULT: ${event.requestId}")
             handler.handleFormattingResult(event)
-
-            // ACK explícito después de procesamiento exitoso
-            redisTemplate.opsForStream<String, Any>().acknowledge(
-                record.stream ?: streamKey,
-                consumerGroup,
-                record.id,
-            )
-            println("✅ [Snippet Service] ACK sent for: ${event.requestId}")
         } catch (e: Exception) {
             println("❌ [Snippet Service] Error processing message: ${e.message}")
-            // No hacer ACK en caso de error, para que se reintente
         }
     }
 
