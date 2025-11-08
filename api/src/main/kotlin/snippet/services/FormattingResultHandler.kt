@@ -12,29 +12,40 @@ class FormattingResultHandler(
 ) {
 
     fun handleFormattingResult(result: FormattingResultEvent) {
-        println("🔔 [Snippet Service] Processing formatting result for snippet ${result.snippetId}")
-
-        if (result.success && result.formattedContent != null) {
-            val snippet =
-                snippetRepository
-                    .findById(result.snippetId)
-                    .orElseThrow {
-                        NoSuchElementException(
-                            "Snippet not found: ${result.snippetId}",
-                        )
-                    }
-
-            assetServiceClient.createOrUpdateAsset(
-                container = snippet.bucketContainer,
-                key = snippet.bucketKey!!,
-                content = result.formattedContent!!,
-            )
-
-            println("✅ [Snippet Service] Snippet ${result.snippetId} formatted successfully")
-        } else {
+        try {
             println(
-                "❌ [Snippet Service] Formatting failed for snippet ${result.snippetId}: ${result.error}",
+                "🔔 [Snippet Service] Processing formatting result for snippet ${result.snippetId}",
             )
+
+            if (result.success && result.formattedContent != null) {
+                val snippet =
+                    snippetRepository
+                        .findById(result.snippetId)
+                        .orElseThrow {
+                            NoSuchElementException(
+                                "Snippet not found: ${result.snippetId}",
+                            )
+                        }
+
+                assetServiceClient.createOrUpdateAsset(
+                    container = snippet.bucketContainer,
+                    key = snippet.bucketKey!!,
+                    content = result.formattedContent!!,
+                )
+
+                println("✅ [Snippet Service] Snippet ${result.snippetId} formatted successfully")
+            } else {
+                println(
+                    "❌ [Snippet Service] Formatting failed for snippet ${result.snippetId}: ${result.error}",
+                )
+            }
+        } catch (e: NoSuchElementException) {
+            println("❌ [Snippet Service] Error processing formatting result: ${e.message}")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Unexpected error processing formatting result for snippet ${result.snippetId}: ${e.message}",
+            )
+            e.printStackTrace()
         }
     }
 }

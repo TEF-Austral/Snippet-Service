@@ -7,19 +7,26 @@ import results.TestingResultEvent
 class TestingResultHandler {
 
     fun handleTestingResult(result: TestingResultEvent) {
-        println("🔔 [Snippet Service] Processing testing result for test ${result.testId}")
+        try {
+            println("🔔 [Snippet Service] Processing testing result for test ${result.testId}")
 
-        if (result.passed) {
+            if (result.passed) {
+                println(
+                    "✅ [Snippet Service] Test ${result.testId} passed for snippet ${result.snippetId}",
+                )
+            } else {
+                println(
+                    "❌ [Snippet Service] Test ${result.testId} failed for snippet ${result.snippetId}",
+                )
+                println("   Expected: ${result.expectedOutputs}")
+                println("   Got: ${result.outputs}")
+                println("   Errors: ${result.errors.joinToString(", ")}")
+            }
+        } catch (e: Exception) {
             println(
-                "✅ [Snippet Service] Test ${result.testId} passed for snippet ${result.snippetId}",
+                "❌ [Snippet Service] Unexpected error processing testing result for test ${result.testId}: ${e.message}",
             )
-        } else {
-            println(
-                "❌ [Snippet Service] Test ${result.testId} failed for snippet ${result.snippetId}",
-            )
-            println("   Expected: ${result.expectedOutputs}")
-            println("   Got: ${result.outputs}")
-            println("   Errors: ${result.errors.joinToString(", ")}")
+            e.printStackTrace()
         }
     }
 }

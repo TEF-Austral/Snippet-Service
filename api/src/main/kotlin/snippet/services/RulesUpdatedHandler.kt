@@ -10,74 +10,59 @@ class RulesUpdatedHandler(
     private val snippetRepository: SnippetRepository,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
-
     companion object {
-        private const val PAGE_SIZE = 100 // Procesar en lotes de 100
+        private const val PAGE_SIZE = 10 // Reducir de 100 a 10
+        private const val DELAY_BETWEEN_BATCHES = 1000L // 1 segundo entre lotes
     }
 
-    /**
-     * Dispara el re-linting (validación) para todos los snippets de un usuario.
-     */
-    fun handleAnalyzerRulesUpdate(userId: String) {
-        println("🔔 [Snippet Service] Recibida actualización de reglas de LINTING para: $userId")
-        println("... Buscando snippets para re-validar...")
-
-        var page = 0
-        var totalSent = 0L
-        while (true) {
-            val pageable = PageRequest.of(page, PAGE_SIZE)
-            val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
-
-            snippetPage.content.forEach { snippet ->
-                println("... Solicitando re-validación para snippet ${snippet.id}")
-                asyncTaskProducer.requestLinting(
-                    snippetId = snippet.id ?: 0L,
-                    bucketContainer = snippet.bucketContainer,
-                    bucketKey = snippet.bucketKey!!,
-                    version = snippet.version,
-                    languageId = snippet.language.name, // o snippet.id.toString() si así lo usas
-                    userId = userId,
-                )
-            }
-
-            totalSent += snippetPage.numberOfElements.toLong()
-            if (!snippetPage.hasNext()) break
-            page++
-        }
-
-        println("✅ [Snippet Service] $totalSent snippets enviados a re-validar.")
-    }
-
-    /**
-     * Dispara el re-formateo para todos los snippets de un usuario.
-     */
     fun handleFormattingRulesUpdate(userId: String) {
-        println("🔔 [Snippet Service] Recibida actualización de reglas de FORMATO para: $userId")
-        println("... Buscando snippets para re-formatear...")
+        try {
+            println(
+                "🔔 [Snippet Service] Recibida actualización de reglas de FORMATO para: $userId",
+            )
 
-        var page = 0
-        var totalSent = 0L
-        while (true) {
-            val pageable = PageRequest.of(page, PAGE_SIZE)
-            val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+            var page = 0
+            var totalSent = 0L
 
-            snippetPage.content.forEach { snippet ->
-                println("... Solicitando re-formateo para snippet ${snippet.id}")
-                asyncTaskProducer.requestFormatting(
-                    snippetId = snippet.id ?: 0L,
-                    bucketContainer = snippet.bucketContainer,
-                    bucketKey = snippet.bucketKey!!,
-                    version = snippet.version,
-                    languageId = snippet.language.name, // o snippet.id.toString()
-                    userId = userId,
-                )
+            while (true) {
+                val pageable = PageRequest.of(page, PAGE_SIZE)
+                val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+
+                snippetPage.content.forEach { snippet ->
+                    try {
+                        println("... Solicitando re-formateo para snippet ${snippet.id}")
+                        asyncTaskProducer.requestFormatting(
+                            snippetId = snippet.id ?: 0L,
+                            bucketContainer = snippet.bucketContainer,
+                            bucketKey = snippet.bucketKey!!,
+                            version = snippet.version,
+                            languageId = snippet.language.name,
+                            userId = userId,
+                        )
+
+                        // Pequeño delay entre cada mensaje
+                        Thread.sleep(100)
+                    } catch (e: Exception) {
+                        println(
+                            "❌ Error enviando formateo para snippet ${snippet.id}: ${e.message}",
+                        )
+                    }
+                }
+
+                totalSent += snippetPage.numberOfElements.toLong()
+
+                if (!snippetPage.hasNext()) break
+
+                Thread.sleep(DELAY_BETWEEN_BATCHES)
+                page++
             }
 
-            totalSent += snippetPage.numberOfElements.toLong()
-            if (!snippetPage.hasNext()) break
-            page++
+            println("✅ [Snippet Service] $totalSent snippets enviados a re-formatear.")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Error crítico procesando actualización de reglas de formato para usuario $userId: ${e.message}",
+            )
+            e.printStackTrace()
         }
-
-        println("✅ [Snippet Service] $totalSent snippets enviados a re-formatear.")
     }
 }
