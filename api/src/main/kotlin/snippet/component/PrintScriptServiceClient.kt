@@ -198,4 +198,17 @@ class PrintScriptServiceClient(
         val url = "$printScriptServiceUrl/tests/$id"
         restTemplate.delete(url)
     }
+
+    fun updateTestCase(
+        id: Long,
+        request: CreateTestRequestDTO,
+    ) {
+        val url = "$printScriptServiceUrl/tests/$id"
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+        val requestEntity = HttpEntity(request, headers)
+        restTemplate.put(url, requestEntity)
+    }
 }

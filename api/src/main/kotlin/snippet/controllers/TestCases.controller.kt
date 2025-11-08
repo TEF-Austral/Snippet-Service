@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -136,5 +137,30 @@ class TestCasesController(
 
         printScriptServiceClient.deleteTestCase(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PutMapping("/{id}")
+    fun updateTest(
+        @PathVariable id: Long,
+        @RequestBody request: CreateTestRequestDTO,
+    ): ResponseEntity<TestDTO> {
+        val test = printScriptServiceClient.getTestById(id)
+        val userId = authenticatedUserProvider.getCurrentUserId()
+        val snippet =
+            snippetRepository
+                .findById(test.snippetId)
+                .orElseThrow { NoSuchElementException("Snippet not found: ${test.snippetId}") }
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = "edit",
+                snippetId = test.snippetId.toString(),
+                ownerId = snippet.ownerId,
+            )
+        if (!hasPermission) {
+            throw IllegalAccessException("You don't have permission to delete this test")
+        }
+        printScriptServiceClient.updateTestCase(id, request)
+        return ResponseEntity.ok(test)
     }
 }
