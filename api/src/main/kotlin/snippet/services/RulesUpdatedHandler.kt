@@ -10,9 +10,65 @@ class RulesUpdatedHandler(
     private val snippetRepository: SnippetRepository,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
+
     companion object {
         private const val PAGE_SIZE = 10 // Reducir de 100 a 10
         private const val DELAY_BETWEEN_BATCHES = 1000L // 1 segundo entre lotes
+    }
+
+    /**
+     * Dispara el re-linting (validación) para todos los snippets de un usuario.
+     */
+    fun handleAnalyzerRulesUpdate(userId: String) {
+        try {
+            println(
+                "🔔 [Snippet Service] Recibida actualización de reglas de LINTING para: $userId",
+            )
+            println("... Buscando snippets para re-validar...")
+
+            var page = 0
+            var totalSent = 0L
+            while (true) {
+                val pageable = PageRequest.of(page, PAGE_SIZE)
+                val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+
+                snippetPage.content.forEach { snippet ->
+                    try {
+                        println("... Solicitando re-validación para snippet ${snippet.id}")
+                        asyncTaskProducer.requestLinting(
+                            snippetId = snippet.id ?: 0L,
+                            bucketContainer = snippet.bucketContainer,
+                            bucketKey = snippet.bucketKey!!,
+                            version = snippet.version,
+                            languageId = snippet.language.name,
+                            userId = userId,
+                        )
+
+                        // Pequeño delay entre cada mensaje
+                        Thread.sleep(100)
+                    } catch (e: Exception) {
+                        println(
+                            "❌ Error enviando validación para snippet ${snippet.id}: ${e.message}",
+                        )
+                    }
+                }
+
+                totalSent += snippetPage.numberOfElements.toLong()
+
+                if (!snippetPage.hasNext()) break
+
+                // Delay entre páginas
+                Thread.sleep(DELAY_BETWEEN_BATCHES)
+                page++
+            }
+
+            println("✅ [Snippet Service] $totalSent snippets enviados a re-validar.")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Error crítico procesando actualización de reglas de linting para usuario $userId: ${e.message}",
+            )
+            e.printStackTrace()
+        }
     }
 
     fun handleFormattingRulesUpdate(userId: String) {
