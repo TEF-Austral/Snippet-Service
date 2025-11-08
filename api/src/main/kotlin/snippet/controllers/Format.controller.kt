@@ -7,14 +7,12 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import snippet.component.AuthorizationServiceClient
 import snippet.component.PrintScriptServiceClient
 import snippet.producers.AsyncTaskProducer
-import snippet.dtos.FormatConfigDTO
 import snippet.repositories.SnippetRepository
 import snippet.security.AuthenticatedUserProvider
 
@@ -31,7 +29,6 @@ class FormatController(
     fun formatSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
-        @RequestBody config: FormatConfigDTO,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
@@ -59,7 +56,6 @@ class FormatController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-                config = config,
                 userId = userId,
             )
 
@@ -70,7 +66,6 @@ class FormatController(
     fun previewFormat(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
-        @RequestBody config: FormatConfigDTO,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
@@ -98,7 +93,6 @@ class FormatController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-                config = config,
                 userId = userId,
             )
 
@@ -109,7 +103,6 @@ class FormatController(
     fun downloadFormatted(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
-        @RequestBody config: FormatConfigDTO,
     ): ResponseEntity<Resource> {
         val userId = authenticatedUserProvider.getCurrentUserId()
 
@@ -137,7 +130,6 @@ class FormatController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-                config = config,
             )
 
         val resource = ByteArrayResource(formattedBytes)

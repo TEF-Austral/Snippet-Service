@@ -56,7 +56,7 @@ class AnalyzeController(
         }
 
         val result =
-            printScriptServiceClient.validateSnippet(
+            printScriptServiceClient.analyzeSnippet(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey

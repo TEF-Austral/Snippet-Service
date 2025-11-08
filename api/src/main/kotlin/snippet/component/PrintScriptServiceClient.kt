@@ -8,7 +8,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
-import snippet.dtos.FormatConfigDTO
 import snippet.dtos.TestDTO
 import snippet.dtos.requests.CreateTestRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
@@ -20,7 +19,7 @@ class PrintScriptServiceClient(
     @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) {
 
-    fun validateSnippet(
+    fun analyzeSnippet(
         container: String,
         key: String,
         version: String,
@@ -63,7 +62,6 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
-        config: FormatConfigDTO,
         userId: String,
     ): String {
         val uri =
@@ -75,13 +73,7 @@ class PrintScriptServiceClient(
                 .queryParam("userId", userId)
                 .toUriString()
 
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-        val request = HttpEntity(config, headers)
-
-        return restTemplate.postForObject(uri, request, String::class.java)
+        return restTemplate.postForObject(uri, null, String::class.java)
             ?: throw IllegalStateException("Failed to format snippet")
     }
 
@@ -89,7 +81,6 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
-        config: FormatConfigDTO,
         userId: String,
     ): String {
         val uri =
@@ -101,13 +92,7 @@ class PrintScriptServiceClient(
                 .queryParam("userId", userId)
                 .toUriString()
 
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-        val request = HttpEntity(config, headers)
-
-        return restTemplate.postForObject(uri, request, String::class.java)
+        return restTemplate.postForObject(uri, null, String::class.java)
             ?: throw IllegalStateException("Failed to preview format")
     }
 
@@ -134,7 +119,6 @@ class PrintScriptServiceClient(
         container: String,
         key: String,
         version: String,
-        config: FormatConfigDTO,
     ): ByteArray {
         val uri =
             UriComponentsBuilder
@@ -144,13 +128,7 @@ class PrintScriptServiceClient(
                 .queryParam("version", version)
                 .toUriString()
 
-        val headers =
-            HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-        val request = HttpEntity(config, headers)
-
-        return restTemplate.postForObject(uri, request, ByteArray::class.java)
+        return restTemplate.postForObject(uri, null, ByteArray::class.java)
             ?: throw IllegalStateException("Failed to download formatted content")
     }
 
