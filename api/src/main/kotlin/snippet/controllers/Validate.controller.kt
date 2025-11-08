@@ -21,7 +21,6 @@ class ValidateContentController(
         val result =
             printScriptServiceClient.validateContent(
                 content = request.content,
-                language = request.language,
                 version = request.version,
             )
 

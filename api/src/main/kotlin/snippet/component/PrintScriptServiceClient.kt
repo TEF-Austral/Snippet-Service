@@ -199,7 +199,6 @@ class PrintScriptServiceClient(
 
     fun validateContent(
         content: String,
-        language: String,
         version: String,
     ): ValidationResponseDTO {
         val url = "$printScriptServiceUrl/analyze/validate"
@@ -212,7 +211,6 @@ class PrintScriptServiceClient(
         val uri =
             UriComponentsBuilder
                 .fromHttpUrl(url)
-                .queryParam("language", language)
                 .queryParam("version", version)
                 .toUriString()
 

@@ -47,6 +47,8 @@ class AnalyzeController(
             throw IllegalAccessException("You don't have permission to analyze this snippet")
         }
 
+        val effectiveUserId = if (snippet.ownerId == userId) userId else snippet.ownerId
+
         val result =
             printScriptServiceClient.validateSnippet(
                 container = snippet.bucketContainer,
@@ -54,7 +56,7 @@ class AnalyzeController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
-                userId = userId,
+                userId = effectiveUserId,
             )
 
         return ResponseEntity.ok(result)
