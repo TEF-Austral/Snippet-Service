@@ -204,7 +204,7 @@ class PrintScriptServiceClient(
         language: String,
         version: String,
     ): ValidationResponseDTO {
-        val url = "$printScriptServiceUrl/validate"
+        val url = "$printScriptServiceUrl/analyze/validate"
 
         val headers =
             HttpHeaders().apply {
