@@ -14,24 +14,14 @@ import snippet.dtos.responses.ValidationResponseDTO
 class ValidateContentController(
     private val printScriptServiceClient: PrintScriptServiceClient,
 ) {
-
-    private fun normalizeVersion(version: String): String =
-        when (version) {
-            "1.1.0" -> "1.1"
-            "1.0.0" -> "1.0"
-            else -> version
-        }
-
     @PostMapping("/validate-content")
     fun validateContent(
         @RequestBody request: ValidateContentRequestDTO,
     ): ResponseEntity<ValidationResponseDTO> {
-        val normalizedVersion = normalizeVersion(request.version)
-
         val result =
             printScriptServiceClient.validateContent(
                 content = request.content,
-                version = normalizedVersion,
+                version = request.version,
             )
 
         return ResponseEntity.ok(result)
