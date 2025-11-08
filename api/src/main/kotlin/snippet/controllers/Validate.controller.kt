@@ -10,7 +10,7 @@ import snippet.dtos.requests.ValidateContentRequestDTO
 import snippet.dtos.responses.ValidationResponseDTO
 
 @RestController
-@RequestMapping("/validate")
+@RequestMapping("/snippets/validate")
 class ValidateContentController(
     private val printScriptServiceClient: PrintScriptServiceClient,
 ) {
