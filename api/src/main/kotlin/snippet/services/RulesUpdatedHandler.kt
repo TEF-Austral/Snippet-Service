@@ -49,6 +49,7 @@ class RulesUpdatedHandler(
                         println(
                             "❌ Error enviando validación para snippet ${snippet.id}: ${e.message}",
                         )
+                        println("❌❌❌ EXCEPCIÓN CAPTURADA: ${e.javaClass.simpleName} - ${e.message}")
                         e.printStackTrace()
                     }
                 }
@@ -99,9 +100,7 @@ class RulesUpdatedHandler(
                             userId = userId,
                         )
                     } catch (e: Exception) {
-                        println(
-                            "❌ Error enviando formateo para snippet ${snippet.id}: ${e.message}",
-                        )
+                        println("❌❌❌ EXCEPCIÓN CAPTURADA: ${e.javaClass.simpleName} - ${e.message}")
                         e.printStackTrace()
                     }
                 }
