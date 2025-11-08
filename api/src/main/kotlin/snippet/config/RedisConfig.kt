@@ -13,6 +13,10 @@ class RedisConfig {
     fun lettuceClientConfigurationBuilderCustomizer(): LettuceClientConfigurationBuilderCustomizer =
         LettuceClientConfigurationBuilderCustomizer { clientConfigurationBuilder ->
 
+            println(
+                "\n\n✅✅✅ [Snippet Service] ¡SÍ ESTOY ESCANEANDO EL PAQUETE snippet.config Y CARGANDO RedisConfig.kt! ✅✅✅\n\n",
+            )
+
             val socketOptions =
                 SocketOptions
                     .builder()
