@@ -332,7 +332,7 @@ class SnippetServiceImpl(
     private fun validateAndUpdateCompliance(snippet: Snippet) {
         try {
             val validation =
-                printScriptServiceClient.validateSnippet(
+                printScriptServiceClient.analyzeSnippet(
                     container = snippet.bucketContainer,
                     key = snippet.bucketKey!!,
                     version = snippet.version,
