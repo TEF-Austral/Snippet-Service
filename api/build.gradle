@@ -10,10 +10,7 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis") {
-    exclude group: "io.lettuce", module: "lettuce-core" // Excluimos Lettuce
-    }
-    implementation("redis.clients:jedis") // Añadimos Jedis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation project(':events')
     implementation project(':common')
 }
