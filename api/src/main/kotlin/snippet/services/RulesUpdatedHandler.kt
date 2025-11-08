@@ -13,7 +13,6 @@ class RulesUpdatedHandler(
 
     companion object {
         private const val PAGE_SIZE = 10 // Reducir de 100 a 10
-        private const val DELAY_BETWEEN_BATCHES = 1000L // 1 segundo entre lotes
     }
 
     /**
@@ -57,9 +56,6 @@ class RulesUpdatedHandler(
                 totalSent += snippetPage.numberOfElements.toLong()
 
                 if (!snippetPage.hasNext()) break
-
-                // Delay entre páginas
-                Thread.sleep(DELAY_BETWEEN_BATCHES)
                 page++
             }
 
@@ -109,8 +105,6 @@ class RulesUpdatedHandler(
 
                 if (!snippetPage.hasNext()) break
 
-                // Delay entre páginas
-                Thread.sleep(DELAY_BETWEEN_BATCHES)
                 page++
             }
 

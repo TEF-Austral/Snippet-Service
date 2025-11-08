@@ -1,6 +1,9 @@
 package snippet.consumers.notification
 
 import events.AnalyzerRulesUpdatedEvent
+import kotlinx.coroutines.Dispatchers // <-- 1. IMPORTAR
+import kotlinx.coroutines.GlobalScope // <-- 2. IMPORTAR
+import kotlinx.coroutines.launch // <-- 3. IMPORTAR
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -23,7 +26,10 @@ class AnalyzerRulesUpdatedConsumer(
     override fun onMessage(record: ObjectRecord<String, AnalyzerRulesUpdatedEvent>) {
         val event = record.value
         println("📨 [Snippet Service] Recibido AnalyzerRulesUpdatedEvent para: ${event.userId}")
-        handler.handleAnalyzerRulesUpdate(event.userId) // Llama al handler
+
+        GlobalScope.launch(Dispatchers.IO) {
+            handler.handleAnalyzerRulesUpdate(event.userId)
+        }
     }
 
     override fun options(): StreamReceiver.StreamReceiverOptions<
