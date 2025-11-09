@@ -11,27 +11,42 @@ class LintingResultHandler(
 ) {
 
     fun handleLintingResult(result: LintingResultEvent) {
-        println("🔔 [Snippet Service] Processing linting result for snippet ${result.snippetId}")
+        try {
+            println(
+                "🔔 [Snippet Service] Processing linting result for snippet ${result.snippetId}",
+            )
 
-        val snippet =
-            snippetRepository
-                .findById(result.snippetId)
-                .orElseThrow { NoSuchElementException("Snippet not found: ${result.snippetId}") }
+            val snippet =
+                snippetRepository
+                    .findById(result.snippetId)
+                    .orElseThrow {
+                        NoSuchElementException(
+                            "Snippet not found: ${result.snippetId}",
+                        )
+                    }
 
-        if (result.isValid) {
-            snippet.complianceStatus = ComplianceStatus.COMPLIANT
-            snippet.lastValidationError = null
-        } else {
-            snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
-            snippet.lastValidationError =
-                result.violations.joinToString("\n") {
-                    "Line ${it.line}, Column ${it.column}: ${it.message}"
-                }
+            if (result.isValid) {
+                snippet.complianceStatus = ComplianceStatus.COMPLIANT
+                snippet.lastValidationError = null
+            } else {
+                snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
+                snippet.lastValidationError =
+                    result.violations.joinToString("\n") {
+                        "Line ${it.line}, Column ${it.column}: ${it.message}"
+                    }
+            }
+
+            snippetRepository.save(snippet)
+            println(
+                "✅ [Snippet Service] Snippet ${result.snippetId} compliance updated: ${snippet.complianceStatus}",
+            )
+        } catch (e: NoSuchElementException) {
+            println("❌ [Snippet Service] Error processing linting result: ${e.message}")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Unexpected error processing linting result for snippet ${result.snippetId}: ${e.message}",
+            )
+            e.printStackTrace()
         }
-
-        snippetRepository.save(snippet)
-        println(
-            "✅ [Snippet Service] Snippet ${result.snippetId} compliance updated: ${snippet.complianceStatus}",
-        )
     }
 }
