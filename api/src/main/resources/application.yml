@@ -7,77 +7,16 @@ spring:
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
-    generate-ddl: true
+    show-sql: false
     hibernate:
-      ddl-auto: update
-
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
-  redis:
-    stream:
-      snippet:
-        key: snippet-events
-      formatting:
-        request:
-          key: formatting-requests
-        result:
-          key: formatting-results
-      linting:
-        request:
-          key: linting-requests
-        result:
-          key: linting-results
-      testing:
-        request:
-          key: testing-requests
-        result:
-          key: testing-results
-      rules:
-        analyzer:
-          updated: analyzer-rules-updated
-        formatter:
-          updated: formatter-rules-updated
-    consumer:
-      group: snippet-service-group
+      ddl-auto: validate
 
   asset:
     service:
       url: ${ASSET_SERVICE_URL}
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${AUTH0_ISSUER_URI}
-
-      client:
-        registration:
-          auth0-m2m:
-            client-id: ${SNIPPET_SERVICE_M2M_CLIENT_ID}
-            client-secret: ${SNIPPET_SERVICE_M2M_CLIENT_SECRET}
-            authorization-grant-type: client_credentials
-            scope: ${AUTH0_M2M_SCOPE:}
-        provider:
-          auth0-m2m:
-            token-uri: ${AUTH0_ISSUER_URI}oauth/token
-
-authorization:
-  service:
-    url: ${AUTHORIZATION_SERVICE_URL}
-
-printscript:
-  service:
-    url: ${PRINTSCRIPT_SERVICE_URL:http://printscript-service-api:8080}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId=%X{requestId:-N/A}] - %msg%n"
+  level:
+    root: INFO
