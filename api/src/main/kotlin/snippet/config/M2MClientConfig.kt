@@ -3,10 +3,9 @@ package snippet.config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
-import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
@@ -31,7 +30,7 @@ class M2MClientConfig {
     @Bean
     fun m2mAuthorizedClientManager(
         clientRegistrationRepository: ClientRegistrationRepository,
-        authorizedClientService: OAuth2AuthorizedClientService, // Cambio aquí
+        authorizedClientService: OAuth2AuthorizedClientService,
     ): OAuth2AuthorizedClientManager {
         val accessTokenResponseClient =
             OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> { grantRequest ->
@@ -76,8 +75,6 @@ class M2MClientConfig {
                 .clientCredentials { configurer ->
                     configurer.accessTokenResponseClient(accessTokenResponseClient)
                 }.build()
-
-        // Usar AuthorizedClientServiceOAuth2AuthorizedClientManager en lugar de DefaultOAuth2AuthorizedClientManager
         val authorizedClientManager =
             AuthorizedClientServiceOAuth2AuthorizedClientManager(
                 clientRegistrationRepository,
@@ -89,15 +86,11 @@ class M2MClientConfig {
     }
 
     @Bean
+    @Primary
     fun restTemplate(manager: OAuth2AuthorizedClientManager): RestTemplate {
         val restTemplate = RestTemplate()
-
-        val interceptor =
-            ClientHttpRequestInterceptor {
-                request: HttpRequest,
-                body: ByteArray,
-                execution: ClientHttpRequestExecution,
-                ->
+        val oauth2Interceptor =
+            ClientHttpRequestInterceptor { request, body, execution ->
                 val authorizeRequest =
                     OAuth2AuthorizeRequest
                         .withClientRegistrationId("auth0-m2m")
@@ -106,7 +99,8 @@ class M2MClientConfig {
 
                 val authorizedClient =
                     manager.authorize(authorizeRequest)
-                        ?: throw OAuth2AuthenticationException(
+                        ?: throw
+                        OAuth2AuthenticationException(
                             "No se pudo autorizar el cliente M2M",
                         )
 
@@ -118,7 +112,9 @@ class M2MClientConfig {
                 execution.execute(request, body)
             }
 
-        restTemplate.interceptors = listOf(interceptor)
+        val requestIdInterceptor = RequestIdPropagationInterceptor()
+        restTemplate.interceptors = listOf(requestIdInterceptor, oauth2Interceptor)
+
         return restTemplate
     }
 }
