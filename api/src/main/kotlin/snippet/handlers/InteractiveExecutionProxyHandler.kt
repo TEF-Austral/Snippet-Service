@@ -18,7 +18,7 @@ class InteractiveExecutionProxyHandler(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val jwtDecoder: JwtDecoder,
-    @Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
+    @Value("\${printscript.service.domain}") private val printScriptServiceDomain: String,
 ) : TextWebSocketHandler() {
 
     private val webSocketClient = StandardWebSocketClient()
@@ -55,7 +55,7 @@ class InteractiveExecutionProxyHandler(
             }
 
             val upstreamHandler = UpstreamHandler(downstreamSession)
-            val upstreamUrl = "ws://$printScriptServiceUrl/ws/execute-interactive"
+            val upstreamUrl = "ws://$printScriptServiceDomain/ws/execute-interactive"
             val upstreamSession = webSocketClient.execute(upstreamHandler, upstreamUrl).get()
 
             val initMessage =
