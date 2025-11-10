@@ -2,6 +2,8 @@ package snippet.handlers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
@@ -18,6 +20,7 @@ class InteractiveExecutionProxyHandler(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val jwtDecoder: JwtDecoder,
+    private val m2mClientManager: OAuth2AuthorizedClientManager, // ✅ NUEVO
     @Value("\${printscript.service.domain}") private val printScriptServiceDomain: String,
 ) : TextWebSocketHandler() {
 
@@ -54,8 +57,21 @@ class InteractiveExecutionProxyHandler(
                 return
             }
 
+            // ✅ OBTENER TOKEN M2M
+            val m2mToken = getM2MToken()
+            if (m2mToken == null) {
+                downstreamSession.close(
+                    CloseStatus.SERVER_ERROR.withReason("No se pudo obtener token M2M"),
+                )
+                return
+            }
+
             val upstreamHandler = UpstreamHandler(downstreamSession)
-            val upstreamUrl = "ws://$printScriptServiceDomain/ws/execute-interactive"
+
+            // ✅ Pasar el token M2M en la URL
+            val upstreamUrl =
+                "ws://$printScriptServiceDomain/ws/execute-interactive?token=$m2mToken"
+
             val upstreamSession = webSocketClient.execute(upstreamHandler, upstreamUrl).get()
 
             val initMessage =
@@ -70,6 +86,7 @@ class InteractiveExecutionProxyHandler(
             downstreamSession.attributes["UPSTREAM_SESSION"] = upstreamSession
         } catch (e: Exception) {
             println("Error al establecer la conexión proxy de WebSocket: ${e.message}")
+            e.printStackTrace()
             downstreamSession.sendMessage(
                 TextMessage("{\"type\":\"Error\", \"value\":\"Error interno: ${e.message}\"}"),
             )
@@ -98,4 +115,20 @@ class InteractiveExecutionProxyHandler(
             upstreamSession.close(status)
         }
     }
+
+    private fun getM2MToken(): String? =
+        try {
+            val authorizeRequest =
+                OAuth2AuthorizeRequest
+                    .withClientRegistrationId("auth0-m2m")
+                    .principal("SnippetServiceM2M")
+                    .build()
+
+            val authorizedClient = m2mClientManager.authorize(authorizeRequest)
+            authorizedClient?.accessToken?.tokenValue
+        } catch (e: Exception) {
+            println("❌ Error al obtener token M2M: ${e.message}")
+            e.printStackTrace()
+            null
+        }
 }
