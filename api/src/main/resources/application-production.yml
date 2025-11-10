@@ -9,6 +9,11 @@ spring:
     service:
       url: ${ASSET_SERVICE_URL}
 
+
+app:
+  websocket:
+      allowed-origins: "https://printscript.duckdns.org"
+
 #  jpa:
 #    database-platform: org.hibernate.dialect.PostgreSQLDialect
 #    show-sql: false
