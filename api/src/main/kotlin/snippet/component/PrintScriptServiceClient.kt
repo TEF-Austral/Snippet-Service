@@ -7,7 +7,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import org.springframework.web.util.UriComponentsBuilder
 import snippet.dtos.TestDTO
 import snippet.dtos.requests.CreateTestRequestDTO
 import snippet.dtos.responses.TestExecutionResponseDTO
@@ -25,17 +24,12 @@ class PrintScriptServiceClient(
         version: String,
         userId: String,
     ): ValidationResponseDTO {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/analyze")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .queryParam("userId", userId)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/analyze?container" +
+                "=$container&key=$key&version=$version&userId=$userId"
 
         return restTemplate.getForObject(
-            uri,
+            url,
             ValidationResponseDTO::class.java,
         )
             ?: throw IllegalStateException("Failed to validate snippet")
@@ -46,15 +40,11 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
     ): ValidationResponseDTO {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/analyze/compile")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/analyze" +
+                "/compile?container=$container&key=$key&version=$version"
 
-        return restTemplate.getForObject(uri, ValidationResponseDTO::class.java)
+        return restTemplate.getForObject(url, ValidationResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to compile snippet")
     }
 
@@ -64,16 +54,11 @@ class PrintScriptServiceClient(
         version: String,
         userId: String,
     ): String {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/format")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .queryParam("userId", userId)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/format?container" +
+                "=$container&key=$key&version=$version&userId=$userId"
 
-        return restTemplate.postForObject(uri, null, String::class.java)
+        return restTemplate.postForObject(url, null, String::class.java)
             ?: throw IllegalStateException("Failed to format snippet")
     }
 
@@ -83,16 +68,11 @@ class PrintScriptServiceClient(
         version: String,
         userId: String,
     ): String {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/format/preview")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .queryParam("userId", userId)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/format" +
+                "/preview?container=$container&key=$key&version=$version&userId=$userId"
 
-        return restTemplate.postForObject(uri, null, String::class.java)
+        return restTemplate.postForObject(url, null, String::class.java)
             ?: throw IllegalStateException("Failed to preview format")
     }
 
@@ -102,16 +82,11 @@ class PrintScriptServiceClient(
         version: String,
         testId: Long,
     ): TestExecutionResponseDTO {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/tests/execute")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .queryParam("testId", testId)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/tests" +
+                "/execute?container=$container&key=$key&version=$version&testId=$testId"
 
-        return restTemplate.postForObject(uri, null, TestExecutionResponseDTO::class.java)
+        return restTemplate.postForObject(url, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
     }
 
@@ -120,15 +95,11 @@ class PrintScriptServiceClient(
         key: String,
         version: String,
     ): ByteArray {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/download/formatted")
-                .queryParam("container", container)
-                .queryParam("key", key)
-                .queryParam("version", version)
-                .toUriString()
+        val url =
+            "$printScriptServiceUrl/download" +
+                "/formatted?container=$container&key=$key&version=$version"
 
-        return restTemplate.postForObject(uri, null, ByteArray::class.java)
+        return restTemplate.postForObject(url, null, ByteArray::class.java)
             ?: throw IllegalStateException("Failed to download formatted content")
     }
 
@@ -146,15 +117,11 @@ class PrintScriptServiceClient(
     }
 
     fun getTestsBySnippet(snippetId: Long): List<TestDTO> {
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl("$printScriptServiceUrl/tests")
-                .queryParam("snippetId", snippetId)
-                .toUriString()
+        val url = "$printScriptServiceUrl/tests?snippetId=$snippetId"
 
         val response =
             restTemplate.exchange(
-                uri,
+                url,
                 HttpMethod.GET,
                 null,
                 Array<TestDTO>::class.java,
@@ -179,22 +146,29 @@ class PrintScriptServiceClient(
         content: String,
         version: String,
     ): ValidationResponseDTO {
-        val url = "$printScriptServiceUrl/analyze/validate"
+        val url = "$printScriptServiceUrl/analyze/validate?version=$version"
 
         val headers =
             HttpHeaders().apply {
                 contentType = MediaType.TEXT_PLAIN
             }
 
-        val uri =
-            UriComponentsBuilder
-                .fromHttpUrl(url)
-                .queryParam("version", version)
-                .toUriString()
-
         val request = HttpEntity(content, headers)
 
-        return restTemplate.postForObject(uri, request, ValidationResponseDTO::class.java)
+        return restTemplate.postForObject(url, request, ValidationResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to validate content")
+    }
+
+    fun updateTestCase(
+        id: Long,
+        request: CreateTestRequestDTO,
+    ) {
+        val url = "$printScriptServiceUrl/tests/$id"
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+        val requestEntity = HttpEntity(request, headers)
+        restTemplate.put(url, requestEntity)
     }
 }

@@ -12,72 +12,108 @@ class RulesUpdatedHandler(
 ) {
 
     companion object {
-        private const val PAGE_SIZE = 100 // Procesar en lotes de 100
+        private const val PAGE_SIZE = 10 // Reducir de 100 a 10
     }
 
     /**
      * Dispara el re-linting (validación) para todos los snippets de un usuario.
      */
     fun handleAnalyzerRulesUpdate(userId: String) {
-        println("🔔 [Snippet Service] Recibida actualización de reglas de LINTING para: $userId")
-        println("... Buscando snippets para re-validar...")
+        try {
+            println(
+                "🔔 [Snippet Service] Recibida actualización de reglas de LINTING para: $userId",
+            )
+            println("... Buscando snippets para re-validar...")
 
-        var page = 0
-        var totalSent = 0L
-        while (true) {
-            val pageable = PageRequest.of(page, PAGE_SIZE)
-            val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+            var page = 0
+            var totalSent = 0L
+            while (true) {
+                val pageable = PageRequest.of(page, PAGE_SIZE)
+                val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
 
-            snippetPage.content.forEach { snippet ->
-                println("... Solicitando re-validación para snippet ${snippet.id}")
-                asyncTaskProducer.requestLinting(
-                    snippetId = snippet.id ?: 0L,
-                    bucketContainer = snippet.bucketContainer,
-                    bucketKey = snippet.bucketKey!!,
-                    version = snippet.version,
-                    languageId = snippet.language.name, // o snippet.id.toString() si así lo usas
-                    userId = userId,
-                )
+                snippetPage.content.forEach { snippet ->
+                    try {
+                        println("... Solicitando re-validación para snippet ${snippet.id}")
+                        asyncTaskProducer.requestLinting(
+                            snippetId = snippet.id ?: 0L,
+                            bucketContainer = snippet.bucketContainer,
+                            bucketKey = snippet.bucketKey!!,
+                            version = snippet.version,
+                            languageId = snippet.language.name,
+                            userId = userId,
+                        )
+
+                        println("📤 Request enviado con snippetID: ${snippet.id}")
+                    } catch (e: Exception) {
+                        println(
+                            "❌ Error enviando validación para snippet ${snippet.id}: ${e.message}",
+                        )
+                        println("❌❌❌ EXCEPCIÓN CAPTURADA: ${e.javaClass.simpleName} - ${e.message}")
+                        e.printStackTrace()
+                    }
+                }
+
+                totalSent += snippetPage.numberOfElements.toLong()
+
+                if (!snippetPage.hasNext()) break
+                page++
             }
 
-            totalSent += snippetPage.numberOfElements.toLong()
-            if (!snippetPage.hasNext()) break
-            page++
+            println("✅ [Snippet Service] $totalSent snippets enviados a re-validar.")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Error crítico procesando actualización de reglas de linting para usuario $userId: ${e.message}",
+            )
+            e.printStackTrace()
         }
-
-        println("✅ [Snippet Service] $totalSent snippets enviados a re-validar.")
     }
 
     /**
      * Dispara el re-formateo para todos los snippets de un usuario.
      */
     fun handleFormattingRulesUpdate(userId: String) {
-        println("🔔 [Snippet Service] Recibida actualización de reglas de FORMATO para: $userId")
-        println("... Buscando snippets para re-formatear...")
+        try {
+            println(
+                "🔔 [Snippet Service] Recibida actualización de reglas de FORMATO para: $userId",
+            )
 
-        var page = 0
-        var totalSent = 0L
-        while (true) {
-            val pageable = PageRequest.of(page, PAGE_SIZE)
-            val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+            var page = 0
+            var totalSent = 0L
 
-            snippetPage.content.forEach { snippet ->
-                println("... Solicitando re-formateo para snippet ${snippet.id}")
-                asyncTaskProducer.requestFormatting(
-                    snippetId = snippet.id ?: 0L,
-                    bucketContainer = snippet.bucketContainer,
-                    bucketKey = snippet.bucketKey!!,
-                    version = snippet.version,
-                    languageId = snippet.language.name, // o snippet.id.toString()
-                    userId = userId,
-                )
+            while (true) {
+                val pageable = PageRequest.of(page, PAGE_SIZE)
+                val snippetPage = snippetRepository.findByOwnerId(userId, pageable)
+
+                snippetPage.content.forEach { snippet ->
+                    try {
+                        println("... Solicitando re-formateo para snippet ${snippet.id}")
+                        asyncTaskProducer.requestFormatting(
+                            snippetId = snippet.id ?: 0L,
+                            bucketContainer = snippet.bucketContainer,
+                            bucketKey = snippet.bucketKey!!,
+                            version = snippet.version,
+                            languageId = snippet.language.name,
+                            userId = userId,
+                        )
+                    } catch (e: Exception) {
+                        println("❌❌❌ EXCEPCIÓN CAPTURADA: ${e.javaClass.simpleName} - ${e.message}")
+                        e.printStackTrace()
+                    }
+                }
+
+                totalSent += snippetPage.numberOfElements.toLong()
+
+                if (!snippetPage.hasNext()) break
+
+                page++
             }
 
-            totalSent += snippetPage.numberOfElements.toLong()
-            if (!snippetPage.hasNext()) break
-            page++
+            println("✅ [Snippet Service] $totalSent snippets enviados a re-formatear.")
+        } catch (e: Exception) {
+            println(
+                "❌ [Snippet Service] Error crítico procesando actualización de reglas de formato para usuario $userId: ${e.message}",
+            )
+            e.printStackTrace()
         }
-
-        println("✅ [Snippet Service] $totalSent snippets enviados a re-formatear.")
     }
 }

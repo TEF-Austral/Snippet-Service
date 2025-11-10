@@ -8,14 +8,14 @@ import org.springframework.http.HttpRequest
 import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient
 import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentialsGrantRequest
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse
@@ -31,7 +31,7 @@ class M2MClientConfig {
     @Bean
     fun m2mAuthorizedClientManager(
         clientRegistrationRepository: ClientRegistrationRepository,
-        authorizedClientRepository: OAuth2AuthorizedClientRepository,
+        authorizedClientService: OAuth2AuthorizedClientService, // Cambio aquí
     ): OAuth2AuthorizedClientManager {
         val accessTokenResponseClient =
             OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> { grantRequest ->
@@ -77,10 +77,11 @@ class M2MClientConfig {
                     configurer.accessTokenResponseClient(accessTokenResponseClient)
                 }.build()
 
+        // Usar AuthorizedClientServiceOAuth2AuthorizedClientManager en lugar de DefaultOAuth2AuthorizedClientManager
         val authorizedClientManager =
-            DefaultOAuth2AuthorizedClientManager(
+            AuthorizedClientServiceOAuth2AuthorizedClientManager(
                 clientRegistrationRepository,
-                authorizedClientRepository,
+                authorizedClientService,
             )
         authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
 
