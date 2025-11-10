@@ -46,6 +46,7 @@ dependencies {
     implementation('org.austral.ingsis:redis-streams-mvc:0.1.13')
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 java {

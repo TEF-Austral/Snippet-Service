@@ -78,6 +78,11 @@ management:
     web:
       exposure:
         include: health
+
+app:
+  websocket:
+    allowed-origins: "https://printscriptdev.duckdns.org"
+
   endpoint:
     health:
       show-details: always
