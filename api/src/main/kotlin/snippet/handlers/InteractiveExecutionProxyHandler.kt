@@ -1,5 +1,6 @@
 package snippet.handlers
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
@@ -21,20 +22,25 @@ class InteractiveExecutionProxyHandler(
 ) : TextWebSocketHandler() {
 
     private val webSocketClient = StandardWebSocketClient()
+    private val objectMapper = jacksonObjectMapper()
 
     override fun afterConnectionEstablished(downstreamSession: WebSocketSession) {
         try {
+            // 1. Obtener SnippetID (del Interceptor)
             val snippetId =
                 downstreamSession.attributes["snippetId"] as? Long
                     ?: throw IllegalArgumentException("No snippetId en la sesión de WebSocket")
 
+            // 2. Obtener Usuario (de tu security)
             val userId = authenticatedUserProvider.getCurrentUserId()
 
+            // 3. Obtener Snippet (¡LO NECESITAMOS PARA LOS DETALLES!)
             val snippet =
                 snippetRepository
                     .findById(snippetId)
                     .orElseThrow { NoSuchElementException("Snippet no encontrado: $snippetId") }
 
+            // 4. Verificar Permisos (sin cambios)
             val hasPermission =
                 authorizationServiceClient.checkPermission(
                     userId = userId,
@@ -52,13 +58,32 @@ class InteractiveExecutionProxyHandler(
                 return
             }
 
+            // 5. Permiso concedido. Conectar al printscript-service (upstream)
             val upstreamHandler = UpstreamHandler(downstreamSession)
 
-            val upstreamUrl =
-                "ws://$printScriptServiceUrl/ws/execute-interactive?snippetId=$snippetId"
+            // --- INICIO DE CAMBIOS ---
 
+            // CAMBIO: La URL ahora es limpia, SIN query parameters
+            val upstreamUrl = "ws://$printScriptServiceUrl/ws/execute-interactive"
+
+            // Conectamos y esperamos a que la conexión se establezca
             val upstreamSession = webSocketClient.execute(upstreamHandler, upstreamUrl).get()
 
+            // CAMBIO: Crear el mensaje de inicialización
+            val initMessage =
+                mapOf(
+                    "type" to "InitExecution", // Usaremos este nuevo tipo
+                    "bucketContainer" to snippet.bucketContainer,
+                    "bucketKey" to snippet.bucketKey,
+                    "version" to snippet.version,
+                )
+
+            // CAMBIO: Enviar el mensaje de inicialización como primer mensaje
+            upstreamSession.sendMessage(TextMessage(objectMapper.writeValueAsString(initMessage)))
+
+            // --- FIN DE CAMBIOS ---
+
+            // 6. Guardar la sesión "upstream" (sin cambios)
             downstreamSession.attributes["UPSTREAM_SESSION"] = upstreamSession
         } catch (e: Exception) {
             println("Error al establecer la conexión proxy de WebSocket: ${e.message}")
