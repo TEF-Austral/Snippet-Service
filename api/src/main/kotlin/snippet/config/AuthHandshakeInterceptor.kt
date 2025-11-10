@@ -19,14 +19,17 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
     ): Boolean {
         try {
             val queryParams = UriComponentsBuilder.fromUri(request.uri).build().queryParams
-            val snippetId = queryParams.getFirst("snippetId")?.toLongOrNull()
 
-            if (snippetId == null) {
-                println("AuthHandshakeInterceptor: Rechazando conexión. Falta snippetId.")
+            val snippetId = queryParams.getFirst("snippetId")?.toLongOrNull()
+            val token = queryParams.getFirst("token")
+
+            if (snippetId == null || token.isNullOrBlank()) {
+                println("AuthHandshakeInterceptor: Rechazando conexión. Falta snippetId o token.")
                 return false
             }
 
             attributes["snippetId"] = snippetId
+            attributes["token"] = token
             return true
         } catch (e: Exception) {
             println("AuthHandshakeInterceptor: Error al procesar la solicitud: ${e.message}")
@@ -40,6 +43,5 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
         wsHandler: WebSocketHandler,
         exception: Exception?,
     ) {
-        // No se necesita lógica después del handshake en este caso
     }
 }
