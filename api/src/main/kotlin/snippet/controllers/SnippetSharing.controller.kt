@@ -22,6 +22,7 @@ class SnippetSharingController(
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(SnippetSharingController::class.java)
 
     @PostMapping("/{id}/share")
     fun shareSnippet(
@@ -29,6 +30,7 @@ class SnippetSharingController(
         @Valid @RequestBody requestDTO: ShareSnippetDTO,
     ): ResponseEntity<ShareSnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("POST /snippets/$id/share - Sharing snippet with user ${requestDTO.userId}")
 
         val snippet =
             snippetRepository
@@ -44,6 +46,7 @@ class SnippetSharingController(
             )
 
         if (!hasPermission) {
+            log.warn("POST /snippets/$id/share - Permission denied for user $userId")
             throw IllegalAccessException("You don't have permission to share this snippet")
         }
 
@@ -56,6 +59,9 @@ class SnippetSharingController(
             canEdit = requestDTO.canEdit,
         )
 
+        log.warn(
+            "POST /snippets/$id/share - Snippet shared successfully with user ${requestDTO.userId}",
+        )
         return ResponseEntity.ok(
             ShareSnippetResponseDTO(
                 message = "Snippet shared successfully",
@@ -76,6 +82,7 @@ class SnippetSharingController(
         @PathVariable userId: String,
     ): ResponseEntity<Unit> {
         val requesterId = authenticatedUserProvider.getCurrentUserId()
+        log.info("DELETE /snippets/$id/share/$userId - Revoking access")
 
         val snippet =
             snippetRepository
@@ -91,6 +98,9 @@ class SnippetSharingController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "DELETE /snippets/$id/share/$userId - Permission denied for requester $requesterId",
+            )
             throw IllegalAccessException("You don't have permission to revoke access")
         }
 
@@ -100,6 +110,7 @@ class SnippetSharingController(
             snippetId = id.toString(),
         )
 
+        log.warn("DELETE /snippets/$id/share/$userId - Access revoked successfully")
         return ResponseEntity.noContent().build()
     }
 

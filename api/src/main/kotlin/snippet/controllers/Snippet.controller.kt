@@ -32,6 +32,7 @@ class SnippetController(
     private val service: SnippetService,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(SnippetController::class.java)
 
     @PostMapping("")
     fun createSnippet(
@@ -39,7 +40,9 @@ class SnippetController(
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
         val author = authenticatedUserProvider.getCurrentUserName() ?: "Unknown"
+        log.info("POST /snippets - Creating snippet for user $userId")
         val created = service.createSnippet(requestDTO, userId, author)
+        log.warn("POST /snippets - Snippet created successfully")
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
 
@@ -48,7 +51,9 @@ class SnippetController(
         @PathVariable id: Long,
     ): ResponseEntity<Unit> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("DELETE /snippets/$id - Deleting snippet for user $userId")
         service.deleteSnippet(id, userId)
+        log.warn("DELETE /snippets/$id - Snippet deleted successfully")
         return ResponseEntity.noContent().build()
     }
 
@@ -58,7 +63,9 @@ class SnippetController(
         @Valid @RequestBody requestDTO: UpdateSnippetRequestDTO,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("PUT /snippets/$id - Updating snippet for user $userId")
         val updated = service.updateSnippet(id, requestDTO, userId)
+        log.warn("PUT /snippets/$id - Snippet updated successfully")
         return ResponseEntity.ok(updated)
     }
 
@@ -67,7 +74,9 @@ class SnippetController(
         @PathVariable id: Long,
     ): ResponseEntity<SnippetResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("GET /snippets/$id - Fetching snippet for user $userId")
         val snippet = service.getSnippetById(id, userId)
+        log.warn("GET /snippets/$id - Snippet retrieved successfully")
         return ResponseEntity.ok(snippet)
     }
 
@@ -83,6 +92,9 @@ class SnippetController(
         @RequestParam(defaultValue = "ASC") sortOrder: String,
     ): ResponseEntity<PaginatedSnippetsDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "GET /snippets - Fetching snippets for user $userId, page $page, pageSize $pageSize",
+        )
 
         val filterDTO =
             SnippetFilterDTO(
@@ -115,13 +127,18 @@ class SnippetController(
             )
 
         val result = service.getMySnippets(userId, page, pageSize, filterDTO)
+        log.warn("GET /snippets - Retrieved ${result.snippets.size} snippets")
         return ResponseEntity.ok(result)
     }
 
     @GetMapping("/MySnippetsThatHavePermission")
     fun getSnippetsThatUserHavePermission(): ResponseEntity<List<StreamSnippetResponseDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "GET /snippets/MySnippetsThatHavePermission - Fetching snippets with permissions for user $userId",
+        )
         val result = service.getSnippetsThatUserHavePermission(userId)
+        log.warn("GET /snippets/MySnippetsThatHavePermission - Retrieved ${result.size} snippets")
         return ResponseEntity.ok(result)
     }
 }

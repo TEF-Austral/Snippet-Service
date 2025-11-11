@@ -26,12 +26,15 @@ class TestCasesController(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestCasesController::class.java)
 
     @PostMapping
     fun createTest(
         @RequestBody request: CreateTestRequestDTO,
     ): ResponseEntity<TestDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("POST /testcases - Creating test for snippet ${request.snippetId}, user $userId")
+
         val snippet =
             snippetRepository
                 .findById(request.snippetId)
@@ -46,13 +49,16 @@ class TestCasesController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "POST /testcases - Permission denied for user $userId on snippet ${request.snippetId}",
+            )
             throw IllegalAccessException(
                 "You don't have permission to create tests for this snippet",
             )
         }
 
         val test = printScriptServiceClient.createTestCase(request)
-
+        log.warn("POST /testcases - Test created with id ${test.id}")
         return ResponseEntity.status(HttpStatus.CREATED).body(test)
     }
 
@@ -61,6 +67,7 @@ class TestCasesController(
         @RequestParam("snippetId") snippetId: Long,
     ): ResponseEntity<List<TestDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("GET /testcases - Fetching tests for snippet $snippetId, user $userId")
 
         val snippet =
             snippetRepository
@@ -76,11 +83,12 @@ class TestCasesController(
             )
 
         if (!hasPermission) {
+            log.warn("GET /testcases - Permission denied for user $userId on snippet $snippetId")
             throw IllegalAccessException("You don't have permission to view tests for this snippet")
         }
 
         val tests = printScriptServiceClient.getTestsBySnippet(snippetId)
-
+        log.warn("GET /testcases - Retrieved ${tests.size} tests for snippet $snippetId")
         return ResponseEntity.ok(tests)
     }
 
@@ -88,6 +96,7 @@ class TestCasesController(
     fun getTest(
         @PathVariable id: Long,
     ): ResponseEntity<TestDTO> {
+        log.info("GET /testcases/$id - Fetching test")
         val test = printScriptServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
@@ -105,9 +114,11 @@ class TestCasesController(
             )
 
         if (!hasPermission) {
+            log.warn("GET /testcases/$id - Permission denied for user $userId")
             throw IllegalAccessException("You don't have permission to view this test")
         }
 
+        log.warn("GET /testcases/$id - Test retrieved successfully")
         return ResponseEntity.ok(test)
     }
 
@@ -115,6 +126,7 @@ class TestCasesController(
     fun deleteTest(
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
+        log.info("DELETE /testcases/$id - Deleting test")
         val test = printScriptServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
@@ -132,10 +144,12 @@ class TestCasesController(
             )
 
         if (!hasPermission) {
+            log.warn("DELETE /testcases/$id - Permission denied for user $userId")
             throw IllegalAccessException("You don't have permission to delete this test")
         }
 
         printScriptServiceClient.deleteTestCase(id)
+        log.warn("DELETE /testcases/$id - Test deleted successfully")
         return ResponseEntity.noContent().build()
     }
 

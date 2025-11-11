@@ -25,12 +25,15 @@ class FormatController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(FormatController::class.java)
+
     @PostMapping
     fun formatSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("POST /format - Formatting snippet $snippetId for user $userId, version $version")
 
         val snippet =
             snippetRepository
@@ -46,6 +49,7 @@ class FormatController(
             )
 
         if (!hasPermission) {
+            log.warn("POST /format - Permission denied for user $userId on snippet $snippetId")
             throw IllegalAccessException("You don't have permission to format this snippet")
         }
 
@@ -59,6 +63,7 @@ class FormatController(
                 userId = userId,
             )
 
+        log.warn("POST /format - Snippet $snippetId formatted successfully")
         return ResponseEntity.ok(formattedContent)
     }
 
@@ -68,6 +73,7 @@ class FormatController(
         @RequestParam("version") version: String,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("POST /format/preview - Previewing format for snippet $snippetId, user $userId")
 
         val snippet =
             snippetRepository
@@ -83,6 +89,9 @@ class FormatController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "POST /format/preview - Permission denied for user $userId on snippet $snippetId",
+            )
             throw IllegalAccessException("You don't have permission to access this snippet")
         }
 
@@ -96,6 +105,7 @@ class FormatController(
                 userId = userId,
             )
 
+        log.warn("POST /format/preview - Format preview generated for snippet $snippetId")
         return ResponseEntity.ok(formattedContent)
     }
 

@@ -30,6 +30,7 @@ class SnippetServiceImpl(
     private val printScriptServiceClient: PrintScriptServiceClient,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) : SnippetService {
+    private val log = org.slf4j.LoggerFactory.getLogger(SnippetServiceImpl::class.java)
 
     @Transactional
     override fun createSnippet(
@@ -37,6 +38,7 @@ class SnippetServiceImpl(
         ownerId: String,
         author: String,
     ): SnippetResponseDTO {
+        log.info("Creating snippet for owner $ownerId, name: ${requestDTO.name}")
         val entity =
             Snippet(
                 name = requestDTO.name,
@@ -66,6 +68,7 @@ class SnippetServiceImpl(
         validateAndUpdateCompliance(saved)
 
         repository.save(saved)
+        log.warn("Snippet created with id ${saved.id}, compliance: ${saved.complianceStatus}")
 
         return saved.toDto()
     }
@@ -74,6 +77,7 @@ class SnippetServiceImpl(
         id: Long,
         requesterId: String,
     ): SnippetResponseDTO {
+        log.info("Fetching snippet $id for requester $requesterId")
         val entity =
             repository
                 .findById(id)
@@ -88,9 +92,11 @@ class SnippetServiceImpl(
             )
 
         if (!hasPermission) {
+            log.warn("Permission denied for requester $requesterId on snippet $id")
             throw IllegalAccessException("You don't have permission to access this snippet")
         }
 
+        log.warn("Snippet $id retrieved successfully")
         return entity.toDto()
     }
 
@@ -100,6 +106,7 @@ class SnippetServiceImpl(
         pageSize: Int,
         filterDTO: SnippetFilterDTO,
     ): PaginatedSnippetsDTO {
+        log.info("Fetching snippets for requester $requesterId, page $page, pageSize $pageSize")
         val safePage = if (page < 0) 0 else page
         val safeSize = if (pageSize <= 0) 20 else pageSize
 
@@ -154,12 +161,15 @@ class SnippetServiceImpl(
 
         val pageResult = repository.findAll(spec, pageable)
 
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        val result =
+            PaginatedSnippetsDTO(
+                page = pageResult.number,
+                pageSize = pageResult.size,
+                count = pageResult.totalElements,
+                snippets = pageResult.content.map { it.toDto() },
+            )
+        log.warn("Retrieved ${result.snippets.size} snippets for requester $requesterId")
+        return result
     }
 
     override fun getSnippetsThatUserHaveAccess(
@@ -167,36 +177,44 @@ class SnippetServiceImpl(
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO {
+        log.info("Fetching snippets with access for requester $requesterId")
         val safePage = if (page < 0) 0 else page
         val safeSize = if (pageSize <= 0) 20 else pageSize
         val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
         val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
         val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
         val pageResult = repository.findByIdIn(snippetIds, pageable)
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        val result =
+            PaginatedSnippetsDTO(
+                page = pageResult.number,
+                pageSize = pageResult.size,
+                count = pageResult.totalElements,
+                snippets = pageResult.content.map { it.toDto() },
+            )
+        log.warn("Retrieved ${result.snippets.size} accessible snippets")
+        return result
     }
 
     override fun getSnippetsThatUserHavePermission(
         requesterId: String,
     ): List<StreamSnippetResponseDTO> {
+        log.info("Fetching stream snippets with permissions for requester $requesterId")
         val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
         val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
         val snippetEntities = repository.findAllById(snippetIds)
 
-        return snippetEntities.map { snippet ->
-            StreamSnippetResponseDTO(
-                snippetId = snippet.id ?: 0L,
-                bucketContainer = snippet.bucketContainer,
-                bucketKey = snippet.bucketKey ?: "",
-                language = snippet.language,
-                version = snippet.version,
-            )
-        }
+        val result =
+            snippetEntities.map { snippet ->
+                StreamSnippetResponseDTO(
+                    snippetId = snippet.id ?: 0L,
+                    bucketContainer = snippet.bucketContainer,
+                    bucketKey = snippet.bucketKey ?: "",
+                    language = snippet.language,
+                    version = snippet.version,
+                )
+            }
+        log.warn("Retrieved ${result.size} stream snippets")
+        return result
     }
 
     override fun getAllMySnippets(
@@ -252,6 +270,7 @@ class SnippetServiceImpl(
         requestDTO: UpdateSnippetRequestDTO,
         requesterId: String,
     ): SnippetResponseDTO {
+        log.info("Updating snippet $id for requester $requesterId")
         val existing =
             repository
                 .findById(id)
@@ -266,6 +285,7 @@ class SnippetServiceImpl(
             )
 
         if (!hasPermission) {
+            log.warn("Permission denied for requester $requesterId to update snippet $id")
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
@@ -292,6 +312,7 @@ class SnippetServiceImpl(
         }
 
         val saved = repository.save(existing)
+        log.warn("Snippet $id updated successfully")
 
         return saved.toDto()
     }

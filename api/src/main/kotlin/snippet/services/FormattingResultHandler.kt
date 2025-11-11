@@ -10,8 +10,12 @@ class FormattingResultHandler(
     private val snippetRepository: SnippetRepository,
     private val assetServiceClient: AssetServiceClient,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(FormattingResultHandler::class.java)
 
     fun handleFormattingResult(result: FormattingResultEvent) {
+        log.info(
+            "Processing formatting result for snippet ${result.snippetId}, success: ${result.success}",
+        )
         try {
             println(
                 "🔔 [Snippet Service] Processing formatting result for snippet ${result.snippetId}",
@@ -33,15 +37,21 @@ class FormattingResultHandler(
                     content = result.formattedContent!!,
                 )
 
+                log.warn("Snippet ${result.snippetId} formatted successfully")
                 println("✅ [Snippet Service] Snippet ${result.snippetId} formatted successfully")
             } else {
+                log.warn("Formatting failed for snippet ${result.snippetId}: ${result.error}")
                 println(
                     "❌ [Snippet Service] Formatting failed for snippet ${result.snippetId}: ${result.error}",
                 )
             }
         } catch (e: NoSuchElementException) {
+            log.warn("Error processing formatting result: ${e.message}")
             println("❌ [Snippet Service] Error processing formatting result: ${e.message}")
         } catch (e: Exception) {
+            log.warn(
+                "Unexpected error processing formatting result for snippet ${result.snippetId}: ${e.message}",
+            )
             println(
                 "❌ [Snippet Service] Unexpected error processing formatting result for snippet ${result.snippetId}: ${e.message}",
             )

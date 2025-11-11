@@ -22,12 +22,15 @@ class AnalyzeController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(AnalyzeController::class.java)
+
     @GetMapping
     fun analyzeSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("GET /analyze - Analyzing snippet $snippetId for user $userId, version $version")
 
         val snippet =
             snippetRepository
@@ -43,6 +46,7 @@ class AnalyzeController(
             )
 
         if (!hasPermission) {
+            log.warn("GET /analyze - Permission denied for user $userId on snippet $snippetId")
             throw IllegalAccessException("You don't have permission to analyze this snippet")
         }
 
@@ -56,6 +60,7 @@ class AnalyzeController(
                 userId = userId,
             )
 
+        log.warn("GET /analyze - Snippet $snippetId analyzed, isValid: ${result.isValid}")
         return ResponseEntity.ok(result)
     }
 
@@ -65,6 +70,7 @@ class AnalyzeController(
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("GET /analyze/compile - Compiling snippet $snippetId for user $userId")
 
         val snippet =
             snippetRepository
@@ -80,6 +86,9 @@ class AnalyzeController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "GET /analyze/compile - Permission denied for user $userId on snippet $snippetId",
+            )
             throw IllegalAccessException("You don't have permission to compile this snippet")
         }
 
@@ -92,6 +101,7 @@ class AnalyzeController(
                 version = version,
             )
 
+        log.warn("GET /analyze/compile - Snippet $snippetId compiled, isValid: ${result.isValid}")
         return ResponseEntity.ok(result)
     }
 

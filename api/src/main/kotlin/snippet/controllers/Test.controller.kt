@@ -23,12 +23,16 @@ class TestController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val asyncTaskProducer: AsyncTaskProducer,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestController::class.java)
 
     @PostMapping("/execute")
     fun executeTest(
         @RequestBody request: TestExecutionRequestDTO,
     ): ResponseEntity<TestExecutionResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "POST /tests/execute - Executing test ${request.testId} for snippet ${request.snippetId}, user $userId",
+        )
 
         val snippet =
             snippetRepository
@@ -44,6 +48,9 @@ class TestController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "POST /tests/execute - Permission denied for user $userId on snippet ${request.snippetId}",
+            )
             throw IllegalAccessException(
                 "You don't have permission to execute tests on this snippet",
             )
@@ -59,6 +66,7 @@ class TestController(
                 testId = request.testId,
             )
 
+        log.warn("POST /tests/execute - Test ${request.testId} executed, passed: ${result.passed}")
         return ResponseEntity.ok(result)
     }
 
@@ -69,6 +77,9 @@ class TestController(
         @RequestParam("testId") testId: Long,
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "POST /tests/execute/async - Async test execution for snippet $snippetId, test $testId",
+        )
 
         val snippet =
             snippetRepository
@@ -84,6 +95,9 @@ class TestController(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "POST /tests/execute/async - Permission denied for user $userId on snippet $snippetId",
+            )
             throw IllegalAccessException(
                 "You don't have permission to execute tests on this snippet",
             )
@@ -97,6 +111,7 @@ class TestController(
                 version = version,
             )
 
+        log.warn("POST /tests/execute/async - Async test request created with id $requestId")
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,
