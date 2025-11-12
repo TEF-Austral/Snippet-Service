@@ -1,5 +1,6 @@
 package api.config
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.stereotype.Component
@@ -10,6 +11,7 @@ import java.lang.Exception
 
 @Component
 class AuthHandshakeInterceptor : HandshakeInterceptor {
+    private val log = LoggerFactory.getLogger(AuthHandshakeInterceptor::class.java)
 
     override fun beforeHandshake(
         request: ServerHttpRequest,
@@ -24,15 +26,21 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
             val token = queryParams.getFirst("token")
 
             if (snippetId == null || token.isNullOrBlank()) {
-                println("AuthHandshakeInterceptor: Rechazando conexión. Falta snippetId o token.")
+                log.warn(
+                    "WebSocket handshake rejected: missing snippetId or token. uri=${request.uri}",
+                )
                 return false
             }
 
             attributes["snippetId"] = snippetId
             attributes["token"] = token
+            log.info("WebSocket handshake accepted: snippetId=$snippetId")
             return true
         } catch (e: Exception) {
-            println("AuthHandshakeInterceptor: Error al procesar la solicitud: ${e.message}")
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error("WebSocket handshake error at $location: ${e.message}, uri=${request.uri}", e)
             return false
         }
     }
@@ -43,5 +51,6 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
         wsHandler: WebSocketHandler,
         exception: Exception?,
     ) {
+        // No action needed after handshake
     }
 }

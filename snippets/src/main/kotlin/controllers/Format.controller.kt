@@ -29,12 +29,15 @@ class FormatController(
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,
     private val asyncTaskProducer: AsyncTaskProducerInt,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(FormatController::class.java)
+
     @PostMapping
     fun formatSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Formatting snippet: snippetId=$snippetId, version=$version, userId=$userId")
 
         val snippet =
             getSnippet(
@@ -45,16 +48,22 @@ class FormatController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn("Snippet has no bucket key: snippetId=$snippetId, userId=$userId")
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val formattedContent =
             executionServiceClient.formatSnippet(
                 container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
+                key = bucketKey,
                 version = version,
                 userId = userId,
             )
 
+        log.info("Snippet formatted successfully: snippetId=$snippetId")
         return ResponseEntity.ok(formattedContent)
     }
 
@@ -64,6 +73,9 @@ class FormatController(
         @RequestParam("version") version: String,
     ): ResponseEntity<String> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "Previewing format for snippet: snippetId=$snippetId, version=$version, userId=$userId",
+        )
 
         val snippet =
             getSnippet(
@@ -74,16 +86,22 @@ class FormatController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn("Snippet has no bucket key for preview: snippetId=$snippetId, userId=$userId")
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val formattedContent =
             executionServiceClient.previewFormat(
                 container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
+                key = bucketKey,
                 version = version,
                 userId = userId,
             )
 
+        log.info("Format preview generated successfully: snippetId=$snippetId")
         return ResponseEntity.ok(formattedContent)
     }
 
@@ -93,6 +111,9 @@ class FormatController(
         @RequestParam("version") version: String,
     ): ResponseEntity<Resource> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "Downloading formatted snippet: snippetId=$snippetId, version=$version, userId=$userId",
+        )
 
         val snippet =
             getSnippet(
@@ -103,17 +124,25 @@ class FormatController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn("Snippet has no bucket key for download: snippetId=$snippetId, userId=$userId")
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val formattedBytes =
             executionServiceClient.downloadFormatted(
                 container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
+                key = bucketKey,
                 version = version,
             )
 
         val resource = ByteArrayResource(formattedBytes)
 
+        log.info(
+            "Formatted snippet downloaded successfully: snippetId=$snippetId, fileName=${snippet.name}-formatted.ps",
+        )
         return ResponseEntity
             .ok()
             .header(
@@ -129,6 +158,9 @@ class FormatController(
         @RequestParam("version") version: String,
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "Async formatting request received: snippetId=$snippetId, version=$version, userId=$userId",
+        )
 
         val snippet =
             getSnippet(
@@ -139,11 +171,20 @@ class FormatController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn(
+                "Snippet has no bucket key for async formatting: snippetId=$snippetId, userId=$userId",
+            )
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val context =
             AsyncTaskRequestContext(
                 snippetId = snippetId,
                 bucketContainer = snippet.bucketContainer,
-                bucketKey = snippet.bucketKey!!,
+                bucketKey = bucketKey,
                 version = version,
                 userId = userId,
                 languageId = snippet.language.name,
@@ -155,6 +196,7 @@ class FormatController(
                 context,
             )
 
+        log.info("Async formatting request accepted: snippetId=$snippetId, requestId=$requestId")
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,

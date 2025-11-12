@@ -17,6 +17,7 @@ import dtos.responses.StreamSnippetResponseDTO
 import entity.Snippet
 import filters.SnippetFilterComposer
 import filters.SnippetFilterFactory
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -35,6 +36,7 @@ class PrintScriptSnippetService(
     private val asyncTaskProducer: AsyncTaskProducerInt,
     private val filterFactory: SnippetFilterFactory,
 ) : SnippetService {
+    private val log = LoggerFactory.getLogger(PrintScriptSnippetService::class.java)
 
     @Transactional
     override fun createSnippet(
@@ -43,6 +45,10 @@ class PrintScriptSnippetService(
         author: String,
         bucketContainer: String,
     ): SnippetResponseDTO {
+        log.info(
+            "Creating snippet: name=${requestDTO.name}, ownerId=$ownerId, language=${requestDTO.language}, version=${requestDTO.version}",
+        )
+
         val entity =
             Snippet(
                 name = requestDTO.name,
@@ -67,6 +73,9 @@ class PrintScriptSnippetService(
 
         repository.save(saved)
 
+        log.info(
+            "Snippet created successfully: snippetId=${saved.id}, name=${saved.name}, complianceStatus=${saved.complianceStatus}",
+        )
         return saved.toDto()
     }
 
@@ -74,6 +83,8 @@ class PrintScriptSnippetService(
         id: Long,
         requesterId: String,
     ): SnippetResponseDTO {
+        log.info("Getting snippet by ID: snippetId=$id, requesterId=$requesterId")
+
         val snippet =
             repository
                 .findById(id)
@@ -81,6 +92,7 @@ class PrintScriptSnippetService(
 
         checkReadPermission(requesterId, id, snippet)
 
+        log.debug("Snippet retrieved successfully: snippetId=$id, name=${snippet.name}")
         return snippet.toDto()
     }
 
@@ -112,6 +124,8 @@ class PrintScriptSnippetService(
         pageSize: Int,
         filterDTO: SnippetFilterDTO,
     ): PaginatedSnippetsDTO {
+        log.info("Getting my snippets: requesterId=$requesterId, page=$page, pageSize=$pageSize")
+
         val sharedSnippetIds = snippetIdsFor(requesterId)
 
         // Create all filters using the factory
@@ -140,6 +154,9 @@ class PrintScriptSnippetService(
 
         val pageResult = repository.findAll(spec, pageable)
 
+        log.debug(
+            "Retrieved ${pageResult.totalElements} snippets for user: requesterId=$requesterId",
+        )
         return toPaginatedSnippetsDTO(pageResult)
     }
 
@@ -203,6 +220,8 @@ class PrintScriptSnippetService(
         requestDTO: UpdateSnippetRequestDTO,
         requesterId: String,
     ): SnippetResponseDTO {
+        log.info("Updating snippet: snippetId=$id, requesterId=$requesterId")
+
         val existing =
             repository
                 .findById(id)
@@ -217,6 +236,9 @@ class PrintScriptSnippetService(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "User does not have permission to update snippet: snippetId=$id, requesterId=$requesterId",
+            )
             throw IllegalAccessException("You don't have permission to update this snippet")
         }
 
@@ -242,6 +264,7 @@ class PrintScriptSnippetService(
 
         val saved = repository.save(existing)
 
+        log.info("Snippet updated successfully: snippetId=$id, name=${saved.name}")
         return saved.toDto()
     }
 
@@ -250,6 +273,8 @@ class PrintScriptSnippetService(
         id: Long,
         requesterId: String,
     ) {
+        log.info("Deleting snippet: snippetId=$id, requesterId=$requesterId")
+
         val existing =
             repository
                 .findById(id)
@@ -264,6 +289,9 @@ class PrintScriptSnippetService(
             )
 
         if (!hasPermission) {
+            log.warn(
+                "User does not have permission to delete snippet: snippetId=$id, requesterId=$requesterId",
+            )
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
 
@@ -276,10 +304,14 @@ class PrintScriptSnippetService(
         )
 
         repository.deleteById(id)
+
+        log.info("Snippet deleted successfully: snippetId=$id")
     }
 
     private fun validateAndUpdateCompliance(snippet: Snippet) {
         try {
+            log.debug("Validating compliance for snippet: snippetId=${snippet.id}")
+
             val validation =
                 printScriptServiceClient.analyzeSnippet(
                     container = snippet.bucketContainer,
@@ -291,16 +323,24 @@ class PrintScriptSnippetService(
             if (validation.isValid) {
                 snippet.complianceStatus = ComplianceStatus.COMPLIANT
                 snippet.lastValidationError = null
+                log.debug("Snippet validation passed: snippetId=${snippet.id}")
             } else {
                 snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
                 snippet.lastValidationError =
                     validation.violations.joinToString("\n") {
                         "Line ${it.line}, Column ${it.column}: ${it.message}"
                     }
+                log.warn(
+                    "Snippet validation failed: snippetId=${snippet.id}, violations=${validation.violations.size}",
+                )
             }
         } catch (e: Exception) {
             snippet.complianceStatus = ComplianceStatus.FAILED
             snippet.lastValidationError = "Validation failed: ${e.message}"
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error("Validation error for snippet ${snippet.id} at $location: ${e.message}", e)
         }
     }
 
@@ -308,7 +348,7 @@ class PrintScriptSnippetService(
         val snippetId = snippet.id ?: return
         val bucketKey = snippet.bucketKey ?: return
 
-        println("📤 [Snippet Service] Disparando tests asíncronos para snippet: $snippetId")
+        log.info("Triggering async tests for snippet: snippetId=$snippetId")
 
         val context =
             AsyncTaskRequestContext(
@@ -322,6 +362,8 @@ class PrintScriptSnippetService(
             TaskType.TESTING,
             context = context,
         )
+
+        log.debug("Async testing request sent for snippet: snippetId=$snippetId")
     }
 
     private fun Snippet.toDto() =

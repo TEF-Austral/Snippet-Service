@@ -1,32 +1,41 @@
 package handlers
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import dtos.responses.TestingResultEvent
 
 @Service
 class TestingResultHandler : TestingResultHandlerInt {
+    private val log = LoggerFactory.getLogger(TestingResultHandler::class.java)
 
     override fun handleTestingResult(result: TestingResultEvent) {
         try {
-            println("[Snippet Service] Processing testing result for test ${result.testId}")
+            log.info(
+                "Processing testing result: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
+            )
 
             if (result.passed) {
-                println(
-                    "[Snippet Service] Test ${result.testId} passed for snippet ${result.snippetId}",
+                log.info(
+                    "Test passed: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
                 )
             } else {
-                println(
-                    "[Snippet Service] Test ${result.testId} failed for snippet ${result.snippetId}",
+                log.warn(
+                    "Test failed: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
                 )
-                println("   Expected: ${result.expectedOutputs}")
-                println("   Got: ${result.outputs}")
-                println("   Errors: ${result.errors.joinToString(", ")}")
+                log.debug("Expected outputs: {}", result.expectedOutputs)
+                log.debug("Actual outputs: {}", result.outputs)
+                if (result.errors.isNotEmpty()) {
+                    log.warn("Test errors: ${result.errors.joinToString(", ")}")
+                }
             }
         } catch (e: Exception) {
-            println(
-                "[Snippet Service] Unexpected error processing testing result for test ${result.testId}: ${e.message}",
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error(
+                "Unexpected error processing testing result for test ${result.testId} at $location: ${e.message}",
+                e,
             )
-            e.printStackTrace()
         }
     }
 }

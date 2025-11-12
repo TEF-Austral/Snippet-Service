@@ -16,6 +16,7 @@ dependencies {
     implementation project(':authorization')
     implementation project(":events")
     implementation project(":assets")
+    implementation project(":snippets")
 }
 
 test {

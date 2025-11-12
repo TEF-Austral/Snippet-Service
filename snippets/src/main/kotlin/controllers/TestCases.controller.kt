@@ -28,12 +28,14 @@ class TestCasesController(
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestCasesController::class.java)
 
     @PostMapping
     fun createTest(
         @RequestBody request: CreateTestRequestDTO,
     ): ResponseEntity<TestDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Creating test case: snippetId=${request.snippetId}, userId=$userId")
 
         getSnippet(
             request.snippetId,
@@ -45,6 +47,9 @@ class TestCasesController(
 
         val test = executionServiceClient.createTestCase(request)
 
+        log.info(
+            "Test case created successfully: testId=${test.id}, snippetId=${request.snippetId}",
+        )
         return ResponseEntity.status(HttpStatus.CREATED).body(test)
     }
 
@@ -53,6 +58,7 @@ class TestCasesController(
         @RequestParam("snippetId") snippetId: Long,
     ): ResponseEntity<List<TestDTO>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Getting test cases for snippet: snippetId=$snippetId, userId=$userId")
 
         getSnippet(
             snippetId,
@@ -64,6 +70,7 @@ class TestCasesController(
 
         val tests = executionServiceClient.getTestsBySnippet(snippetId)
 
+        log.info("Retrieved ${tests.size} test cases for snippet: snippetId=$snippetId")
         return ResponseEntity.ok(tests)
     }
 
@@ -71,9 +78,10 @@ class TestCasesController(
     fun getTest(
         @PathVariable id: Long,
     ): ResponseEntity<TestDTO> {
-        val test = executionServiceClient.getTestById(id)
-
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Getting test case: testId=$id, userId=$userId")
+
+        val test = executionServiceClient.getTestById(id)
 
         getSnippet(
             test.snippetId,
@@ -83,6 +91,7 @@ class TestCasesController(
             authorizationServiceClient,
         )
 
+        log.info("Test case retrieved: testId=$id, snippetId=${test.snippetId}")
         return ResponseEntity.ok(test)
     }
 
@@ -90,9 +99,10 @@ class TestCasesController(
     fun deleteTest(
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
-        val test = executionServiceClient.getTestById(id)
-
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Deleting test case: testId=$id, userId=$userId")
+
+        val test = executionServiceClient.getTestById(id)
 
         getSnippet(
             test.snippetId,
@@ -103,6 +113,8 @@ class TestCasesController(
         )
 
         executionServiceClient.deleteTestCase(id)
+
+        log.info("Test case deleted successfully: testId=$id, snippetId=${test.snippetId}")
         return ResponseEntity.noContent().build()
     }
 
@@ -111,8 +123,10 @@ class TestCasesController(
         @PathVariable id: Long,
         @RequestBody request: CreateTestRequestDTO,
     ): ResponseEntity<TestDTO> {
-        val test = executionServiceClient.getTestById(id)
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Updating test case: testId=$id, userId=$userId")
+
+        val test = executionServiceClient.getTestById(id)
 
         getSnippet(
             test.snippetId,
@@ -123,6 +137,9 @@ class TestCasesController(
         )
 
         executionServiceClient.updateTestCase(id, request)
-        return ResponseEntity.ok(test)
+        val updatedTest = executionServiceClient.getTestById(id)
+
+        log.info("Test case updated successfully: testId=$id, snippetId=${test.snippetId}")
+        return ResponseEntity.ok(updatedTest)
     }
 }

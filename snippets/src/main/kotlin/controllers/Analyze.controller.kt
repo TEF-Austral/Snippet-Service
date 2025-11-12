@@ -26,12 +26,16 @@ class AnalyzeController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val asyncTaskProducer: AsyncTaskProducerInt,
 ) {
+
+    private val log = org.slf4j.LoggerFactory.getLogger(AnalyzeController::class.java)
+
     @GetMapping
     fun analyzeSnippet(
         @RequestParam("snippetId") snippetId: Long,
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Analyzing snippet: snippetId=$snippetId, version=$version, userId=$userId")
 
         val snippet =
             getSnippet(
@@ -52,6 +56,7 @@ class AnalyzeController(
                 userId = userId,
             )
 
+        log.info("Snippet analysis completed: snippetId=$snippetId, success=${result.isValid}")
         return ResponseEntity.ok(result)
     }
 
@@ -61,6 +66,7 @@ class AnalyzeController(
         @RequestParam("version") version: String,
     ): ResponseEntity<ValidationResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info("Compiling snippet: snippetId=$snippetId, version=$version, userId=$userId")
 
         val snippet =
             getSnippet(
@@ -80,6 +86,7 @@ class AnalyzeController(
                 version = version,
             )
 
+        log.info("Snippet compilation completed: snippetId=$snippetId, success=${result.isValid}")
         return ResponseEntity.ok(result)
     }
 
@@ -89,37 +96,60 @@ class AnalyzeController(
         @RequestParam("version") version: String,
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
-
-        val snippet =
-            getSnippet(
-                snippetId,
-                userId,
-                UserAction.READ,
-                snippetRepository,
-                authorizationServiceClient,
-            )
-
-        val context =
-            AsyncTaskRequestContext(
-                snippetId = snippetId,
-                bucketContainer = snippet.bucketContainer,
-                bucketKey = snippet.bucketKey!!,
-                version = version,
-                userId = userId,
-                languageId = snippet.language.name,
-            )
-
-        val requestId =
-            asyncTaskProducer.request(
-                TaskType.LINTING,
-                context,
-            )
-
-        return ResponseEntity.accepted().body(
-            mapOf(
-                "requestId" to requestId,
-                "message" to "Linting request accepted. Processing asynchronously.",
-            ),
+        log.info(
+            "Async linting request received: snippetId=$snippetId, version=$version, userId=$userId",
         )
+
+        try {
+            val snippet =
+                getSnippet(
+                    snippetId,
+                    userId,
+                    UserAction.READ,
+                    snippetRepository,
+                    authorizationServiceClient,
+                )
+
+            if (snippet.bucketKey == null) {
+                log.warn(
+                    "Snippet has no bucket key for async linting: snippetId=$snippetId, userId=$userId",
+                )
+                throw IllegalStateException("Snippet has no bucket key")
+            }
+
+            val bucketKey = snippet.bucketKey!!
+
+            val context =
+                AsyncTaskRequestContext(
+                    snippetId = snippetId,
+                    bucketContainer = snippet.bucketContainer,
+                    bucketKey = bucketKey,
+                    version = version,
+                    userId = userId,
+                    languageId = snippet.language.name,
+                )
+
+            val requestId =
+                asyncTaskProducer.request(
+                    TaskType.LINTING,
+                    context,
+                )
+
+            log.info("Async linting request accepted: snippetId=$snippetId, requestId=$requestId")
+            return ResponseEntity.accepted().body(
+                mapOf(
+                    "requestId" to requestId,
+                    "message" to "Linting request accepted. Processing asynchronously.",
+                ),
+            )
+        } catch (e: NoSuchElementException) {
+            log.warn("Snippet not found for async linting: snippetId=$snippetId, userId=$userId")
+            throw e
+        } catch (e: IllegalAccessException) {
+            log.warn(
+                "User does not have permission for async linting: snippetId=$snippetId, userId=$userId",
+            )
+            throw e
+        }
     }
 }

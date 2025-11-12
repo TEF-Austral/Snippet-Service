@@ -1,6 +1,7 @@
 package producers.strategy
 
 import AsyncTaskRequestContext
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import producers.LintingRequestProducer
 import requests.LintingRequestEvent
@@ -10,6 +11,8 @@ import java.util.UUID
 class LintingTaskStrategy(
     private val producer: LintingRequestProducer,
 ) : AsyncTaskStrategy {
+    private val log = LoggerFactory.getLogger(LintingTaskStrategy::class.java)
+
     override fun canHandle(type: TaskType): Boolean = type == TaskType.LINTING
 
     override fun submit(context: AsyncTaskRequestContext): String {
@@ -27,8 +30,8 @@ class LintingTaskStrategy(
                 snippetId = context.snippetId,
             )
         producer.emit(event)
-        println(
-            "[Snippet Service] Published linting REQUEST: $requestId for snippet: ${context.snippetId}",
+        log.info(
+            "Published linting request: requestId=$requestId, snippetId=${context.snippetId}, userId=$userId",
         )
         return requestId
     }

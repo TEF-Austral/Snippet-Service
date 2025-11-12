@@ -1,6 +1,7 @@
 package producers.strategy
 
 import AsyncTaskRequestContext
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import producers.TestingRequestProducer
 import requests.TestingRequestEvent
@@ -10,6 +11,7 @@ import java.util.UUID
 class TestingTaskStrategy(
     private val producer: TestingRequestProducer,
 ) : AsyncTaskStrategy {
+    private val log = LoggerFactory.getLogger(TestingTaskStrategy::class.java)
 
     override fun canHandle(type: TaskType): Boolean = type == TaskType.TESTING
 
@@ -24,9 +26,7 @@ class TestingTaskStrategy(
                 version = context.version,
             )
         producer.emit(event)
-        println(
-            "[Snippet Service] Published testing REQUEST: $requestId for snippet: ${context.snippetId}",
-        )
+        log.info("Published testing request: requestId=$requestId, snippetId=${context.snippetId}")
         return requestId
     }
 }

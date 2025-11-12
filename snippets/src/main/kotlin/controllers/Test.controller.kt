@@ -27,12 +27,16 @@ class TestController(
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,
     private val asyncTaskProducer: AsyncTaskProducerInt,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestController::class.java)
 
     @PostMapping("/execute")
     fun executeTest(
         @RequestBody request: TestExecutionRequestDTO,
     ): ResponseEntity<TestExecutionResponseDTO> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "Executing test: snippetId=${request.snippetId}, version=${request.version}, testId=${request.testId}, userId=$userId",
+        )
 
         val snippet =
             getSnippet(
@@ -43,16 +47,24 @@ class TestController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn("Snippet has no bucket key: snippetId=${request.snippetId}, userId=$userId")
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val result =
             executionServiceClient.executeTest(
                 container = snippet.bucketContainer,
-                key =
-                    snippet.bucketKey
-                        ?: throw IllegalStateException("Snippet has no bucket key"),
+                key = bucketKey,
                 version = request.version,
                 testId = request.testId,
             )
 
+        log.info(
+            "Test execution completed: snippetId=${request.snippetId}, testId=${request.testId}, passed=${result.passed}",
+        )
         return ResponseEntity.ok(result)
     }
 
@@ -62,6 +74,9 @@ class TestController(
         @RequestParam("version") version: String,
     ): ResponseEntity<Map<String, String>> {
         val userId = authenticatedUserProvider.getCurrentUserId()
+        log.info(
+            "Async test execution request received: snippetId=$snippetId, version=$version, userId=$userId",
+        )
 
         val snippet =
             getSnippet(
@@ -72,11 +87,20 @@ class TestController(
                 authorizationServiceClient,
             )
 
+        if (snippet.bucketKey == null) {
+            log.warn(
+                "Snippet has no bucket key for async test execution: snippetId=$snippetId, userId=$userId",
+            )
+            throw IllegalStateException("Snippet has no bucket key")
+        }
+
+        val bucketKey = snippet.bucketKey!!
+
         val context =
             AsyncTaskRequestContext(
                 snippetId,
                 snippet.bucketContainer,
-                snippet.bucketKey!!,
+                bucketKey,
                 version,
             )
         val requestId =
@@ -85,6 +109,9 @@ class TestController(
                 context,
             )
 
+        log.info(
+            "Async test execution request accepted: snippetId=$snippetId, requestId=$requestId",
+        )
         return ResponseEntity.accepted().body(
             mapOf(
                 "requestId" to requestId,

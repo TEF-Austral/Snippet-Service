@@ -2,6 +2,7 @@ package handlers.rules
 
 import AsyncTaskRequestContext
 import entity.Snippet
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import producers.AsyncTaskProducerInt
 import producers.strategy.TaskType
@@ -13,6 +14,7 @@ class AnalyzerRulesUpdateHandler(
     private val asyncTaskProducer: AsyncTaskProducerInt,
     private val pageProcessor: SnippetPageProcessor = SnippetPageProcessor(snippetRepository),
 ) : RuleUpdateHandleInt {
+    private val log = LoggerFactory.getLogger(AnalyzerRulesUpdateHandler::class.java)
 
     override fun canHandle(type: RuleType): Boolean = type == RuleType.Lint
 
@@ -52,7 +54,7 @@ class AnalyzerRulesUpdateHandler(
                 )
 
             asyncTaskProducer.request(
-                TaskType.FORMATTING,
+                TaskType.LINTING,
                 context,
             )
         } catch (e: Exception) {
@@ -61,11 +63,11 @@ class AnalyzerRulesUpdateHandler(
     }
 
     private fun logRulesUpdateReceived(userId: String) {
-        println("🔔 [Snippet Service] Received LINT rules update for: $userId")
+        log.info("Received LINT rules update for user: userId=$userId")
     }
 
     private fun logLintingRequest(snippetId: Long) {
-        println("... Requesting lint for snippet $snippetId")
+        log.debug("Requesting lint for snippet: snippetId=$snippetId")
     }
 
     private fun logSendError(
@@ -73,20 +75,29 @@ class AnalyzerRulesUpdateHandler(
         e: Exception,
     ) {
         val snippetId = snippet.id!!
-        println("❌ Error sending linting request for snippet $snippetId: ${e.message}")
-        e.printStackTrace()
+        val stackTrace = e.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error(
+            "Error sending linting request for snippet $snippetId at $location: ${e.message}",
+            e,
+        )
     }
 
     private fun logCompletionSuccess(totalSent: Long) {
-        println("✅ [Snippet Service] $totalSent snippets sent for linting.")
+        log.info("Linting requests sent successfully: totalSnippets=$totalSent")
     }
 
     private fun logCriticalError(
         userId: String,
         e: Exception,
     ) {
-        println(
-            "❌ [Snippet Service] Critical error processing lint rules update for user $userId: ${e.message}",
+        val stackTrace = e.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error(
+            "Critical error processing lint rules update for user $userId at $location: ${e.message}",
+            e,
         )
     }
 }

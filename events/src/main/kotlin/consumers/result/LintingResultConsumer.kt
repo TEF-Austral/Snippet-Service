@@ -2,6 +2,7 @@ package consumers.result
 
 import handlers.LintingResultHandlerInt
 import org.austral.ingsis.redis.RedisStreamConsumer
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.connection.stream.ObjectRecord
@@ -19,13 +20,20 @@ class LintingResultConsumer(
     redis: RedisTemplate<String, String>,
     private val handler: LintingResultHandlerInt,
 ) : RedisStreamConsumer<LintingResultEvent>(streamKey, consumerGroup, redis) {
+    private val log = LoggerFactory.getLogger(LintingResultConsumer::class.java)
 
     override fun onMessage(record: ObjectRecord<String, LintingResultEvent>) {
         try {
             val event = record.value
+            log.debug(
+                "Received linting result message: snippetId=${event.snippetId}, requestId=${event.requestId}",
+            )
             handler.handleLintingResult(event)
         } catch (e: Exception) {
-            println("[Snippet Service] Error processing message: ${e.message}")
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error("Error processing linting result message at $location: ${e.message}", e)
         }
     }
 

@@ -1,6 +1,7 @@
 package producers.strategy
 
 import AsyncTaskRequestContext
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import producers.FormattingRequestProducer
 import requests.FormattingRequestEvent
@@ -10,6 +11,8 @@ import java.util.UUID
 class FormattingTaskStrategy(
     private val producer: FormattingRequestProducer,
 ) : AsyncTaskStrategy {
+    private val log = LoggerFactory.getLogger(FormattingTaskStrategy::class.java)
+
     override fun canHandle(type: TaskType): Boolean = type == TaskType.FORMATTING
 
     override fun submit(context: AsyncTaskRequestContext): String {
@@ -27,8 +30,8 @@ class FormattingTaskStrategy(
                 snippetId = context.snippetId,
             )
         producer.emit(event)
-        println(
-            "[Snippet Service] Published formatting REQUEST: $requestId for snippet: ${context.snippetId}",
+        log.info(
+            "Published formatting request: requestId=$requestId, snippetId=${context.snippetId}, userId=$userId",
         )
         return requestId
     }

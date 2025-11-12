@@ -1,5 +1,6 @@
 package api.exception
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -10,9 +11,14 @@ import org.springframework.web.client.HttpServerErrorException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNotFound(ex: NoSuchElementException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Resource not found at $location: ${ex.message}", ex)
         val error =
             ErrorResponse(
                 status = HttpStatus.NOT_FOUND.value(),
@@ -24,6 +30,10 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleBadRequest(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Bad request at $location: ${ex.message}", ex)
         val error =
             ErrorResponse(
                 status = HttpStatus.BAD_REQUEST.value(),
@@ -39,6 +49,10 @@ class GlobalExceptionHandler {
             ex.bindingResult.fieldErrors.joinToString(", ") {
                 "${it.field}: ${it.defaultMessage}"
             }
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Validation error at $location: $errors", ex)
         val error =
             ErrorResponse(
                 status = HttpStatus.BAD_REQUEST.value(),
@@ -50,6 +64,13 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException::class)
     fun handleHttpClientError(ex: HttpClientErrorException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error(
+            "External service client error at $location (${ex.statusCode}): ${ex.statusText}",
+            ex,
+        )
         val error =
             ErrorResponse(
                 status = ex.statusCode.value(),
@@ -61,6 +82,13 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpServerErrorException::class)
     fun handleHttpServerError(ex: HttpServerErrorException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error(
+            "External service server error at $location (${ex.statusCode}): ${ex.statusText}",
+            ex,
+        )
         val error =
             ErrorResponse(
                 status = HttpStatus.SERVICE_UNAVAILABLE.value(),
@@ -72,6 +100,10 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error("Internal server error at $location: ${ex.message}", ex)
         val error =
             ErrorResponse(
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -83,6 +115,10 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalAccessException::class)
     fun handleForbidden(ex: IllegalAccessException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Access denied at $location: ${ex.message}", ex)
         val error =
             ErrorResponse(
                 status = HttpStatus.FORBIDDEN.value(),
@@ -95,22 +131,32 @@ class GlobalExceptionHandler {
     @ExceptionHandler(HttpClientErrorException.Unauthorized::class)
     fun handleUnauthorized(
         ex: HttpClientErrorException.Unauthorized,
-    ): ResponseEntity<ErrorResponse> =
-        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+    ): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Unauthorized access at $location: ${ex.message}", ex)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             ErrorResponse(
                 status = HttpStatus.UNAUTHORIZED.value(),
                 error = "Unauthorized",
                 message = ex.message ?: "Unauthorized",
             ),
         )
+    }
 
     @ExceptionHandler(IllegalStateException::class)
-    fun handleConflict(ex: IllegalStateException): ResponseEntity<ErrorResponse> =
-        ResponseEntity.status(HttpStatus.CONFLICT).body(
+    fun handleConflict(ex: IllegalStateException): ResponseEntity<ErrorResponse> {
+        val stackTrace = ex.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.warn("Conflict at $location: ${ex.message}", ex)
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
             ErrorResponse(
                 status = HttpStatus.CONFLICT.value(),
                 error = "Conflict",
                 message = ex.message ?: "Conflict",
             ),
         )
+    }
 }
