@@ -1,7 +1,9 @@
 package api
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.runApplication
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @SpringBootApplication(
     scanBasePackages = [
@@ -41,6 +43,8 @@ import org.springframework.boot.runApplication
         "filters",
     ],
 )
+@EnableJpaRepositories("repositories")
+@EntityScan("entity")
 class SnippetServiceApplication
 
 fun main(args: Array<String>) {
