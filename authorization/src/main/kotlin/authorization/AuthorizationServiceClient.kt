@@ -1,7 +1,7 @@
 package authorization
 
-import common.dtos.responses.CheckPermissionResponseDTO
-import common.dtos.responses.PermissionResponseDTO
+import dtos.responses.CheckPermissionResponseDTO
+import dtos.responses.PermissionResponseDTO
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -18,7 +18,7 @@ class AuthorizationServiceClient(
 
     override fun checkPermission(
         userId: String,
-        action: Permissions,
+        action: UserAction,
         snippetId: String,
         ownerId: String,
     ): Boolean {

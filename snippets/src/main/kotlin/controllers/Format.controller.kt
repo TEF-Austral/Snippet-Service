@@ -2,9 +2,9 @@ package controllers
 
 import AsyncTaskRequestContext
 import authorization.AuthorizationServiceClient
-import authorization.Permissions
-import component.PrintScriptServiceClient
+import authorization.UserAction
 import controllers.utils.getSnippet
+import language.ExecutionServiceClientInt
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -23,7 +23,7 @@ import security.AuthenticatedUserProviderInt
 @RestController
 @RequestMapping("/format")
 class FormatController(
-    private val printScriptServiceClient: PrintScriptServiceClient,
+    private val executionServiceClient: ExecutionServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,
@@ -40,13 +40,13 @@ class FormatController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.EDIT,
+                UserAction.EDIT,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val formattedContent =
-            printScriptServiceClient.formatSnippet(
+            executionServiceClient.formatSnippet(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -69,13 +69,13 @@ class FormatController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.READ,
+                UserAction.READ,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val formattedContent =
-            printScriptServiceClient.previewFormat(
+            executionServiceClient.previewFormat(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -98,13 +98,13 @@ class FormatController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.READ,
+                UserAction.READ,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val formattedBytes =
-            printScriptServiceClient.downloadFormatted(
+            executionServiceClient.downloadFormatted(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -134,7 +134,7 @@ class FormatController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.EDIT,
+                UserAction.EDIT,
                 snippetRepository,
                 authorizationServiceClient,
             )

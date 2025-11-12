@@ -2,10 +2,10 @@ package controllers
 
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
-import authorization.Permissions
+import authorization.UserAction
 import dtos.responses.ValidationResponseDTO
-import component.PrintScriptServiceClient
 import controllers.utils.getSnippet
+import language.ExecutionServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,7 +20,7 @@ import security.AuthenticatedUserProvider
 @RestController
 @RequestMapping("/analyze")
 class AnalyzeController(
-    private val printScriptServiceClient: PrintScriptServiceClient,
+    private val executionServiceClient: ExecutionServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationService,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
@@ -37,13 +37,13 @@ class AnalyzeController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.READ,
+                UserAction.READ,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val result =
-            printScriptServiceClient.analyzeSnippet(
+            executionServiceClient.analyzeSnippet(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -66,13 +66,13 @@ class AnalyzeController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.READ,
+                UserAction.READ,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val result =
-            printScriptServiceClient.compileSnippet(
+            executionServiceClient.compileSnippet(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -94,7 +94,7 @@ class AnalyzeController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.READ,
+                UserAction.READ,
                 snippetRepository,
                 authorizationServiceClient,
             )

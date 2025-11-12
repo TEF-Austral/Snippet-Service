@@ -1,11 +1,11 @@
 package language
 
-import common.dtos.requests.CreateTestRequestDTO
-import common.dtos.responses.TestDTO
-import common.dtos.responses.TestExecutionResponseDTO
+import dtos.requests.CreateTestRequestDTO
+import dtos.responses.TestDTO
+import dtos.responses.TestExecutionResponseDTO
 import dtos.responses.ValidationResponseDTO
 
-interface LanguageServiceClient {
+interface ExecutionServiceClientInt {
 
     fun analyzeSnippet(
         container: String,

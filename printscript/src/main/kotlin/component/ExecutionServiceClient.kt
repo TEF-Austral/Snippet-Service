@@ -1,10 +1,10 @@
 package component
 
-import common.dtos.requests.CreateTestRequestDTO
-import common.dtos.responses.TestDTO
-import common.dtos.responses.TestExecutionResponseDTO
+import dtos.requests.CreateTestRequestDTO
+import dtos.responses.TestDTO
+import dtos.responses.TestExecutionResponseDTO
 import dtos.responses.ValidationResponseDTO
-import language.LanguageServiceClient
+import language.ExecutionServiceClientInt
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 @Component
-class PrintScriptServiceClient(
+class ExecutionServiceClient(
     private val restTemplate: RestTemplate,
     @param:Value($$"${printscript.service.url}") private val printScriptServiceUrl: String,
-) : LanguageServiceClient {
+) : ExecutionServiceClientInt {
 
     override fun analyzeSnippet(
         container: String,

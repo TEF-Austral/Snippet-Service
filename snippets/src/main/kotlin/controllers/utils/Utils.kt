@@ -1,14 +1,14 @@
 package controllers.utils
 
 import authorization.AuthorizationService
-import authorization.Permissions
+import authorization.UserAction
 import entity.Snippet
 import repositories.SnippetRepository
 
 fun getSnippet(
     snippetId: Long,
     userId: String,
-    permissions: Permissions,
+    permissions: UserAction,
     snippetRepository: SnippetRepository,
     authorizationServiceClient: AuthorizationService,
 ): Snippet {

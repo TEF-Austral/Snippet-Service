@@ -4,8 +4,8 @@ import component.AssetService
 import handlers.utils.findSnippetOrThrow
 import handlers.utils.handleException
 import org.springframework.stereotype.Service
-import repositories.SnippetRepository
 import dtos.responses.FormattingResultEvent
+import repositories.SnippetRepository
 
 @Service
 class FormattingResultHandler(

@@ -1,11 +1,11 @@
 package services
 
-import common.dtos.requests.CreateSnippetRequestDTO
-import common.dtos.requests.SnippetFilterDTO
-import common.dtos.requests.UpdateSnippetRequestDTO
-import common.dtos.responses.PaginatedSnippetsDTO
-import common.dtos.responses.SnippetResponseDTO
-import common.dtos.responses.StreamSnippetResponseDTO
+import dtos.requests.CreateSnippetRequestDTO
+import dtos.requests.SnippetFilterDTO
+import dtos.requests.UpdateSnippetRequestDTO
+import dtos.responses.PaginatedSnippetsDTO
+import dtos.responses.SnippetResponseDTO
+import dtos.responses.StreamSnippetResponseDTO
 
 interface SnippetService {
     fun createSnippet(

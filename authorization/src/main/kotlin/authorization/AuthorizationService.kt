@@ -1,12 +1,12 @@
 package authorization
 
-import common.dtos.responses.PermissionResponseDTO
+import dtos.responses.PermissionResponseDTO
 
 interface AuthorizationService {
 
     fun checkPermission(
         userId: String,
-        action: Permissions,
+        action: UserAction,
         snippetId: String,
         ownerId: String,
     ): Boolean

@@ -1,3 +1,5 @@
+package dtos.responses
+
 import dtos.types.Language
 
 data class StreamSnippetResponseDTO(

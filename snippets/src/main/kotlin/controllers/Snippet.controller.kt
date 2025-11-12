@@ -1,16 +1,16 @@
 package controllers
 
-import common.Language
-import common.dtos.requests.ComplianceFilter
-import common.dtos.requests.CreateSnippetRequestDTO
-import common.dtos.requests.OwnershipFilter
-import common.dtos.requests.SnippetFilterDTO
-import common.dtos.requests.SortField
-import common.dtos.requests.SortOrder
-import common.dtos.requests.UpdateSnippetRequestDTO
-import common.dtos.responses.PaginatedSnippetsDTO
-import common.dtos.responses.SnippetResponseDTO
-import common.dtos.responses.StreamSnippetResponseDTO
+import dtos.requests.ComplianceFilter
+import dtos.requests.CreateSnippetRequestDTO
+import dtos.requests.OwnershipFilter
+import dtos.requests.SnippetFilterDTO
+import dtos.requests.SortField
+import dtos.requests.SortOrder
+import dtos.requests.UpdateSnippetRequestDTO
+import dtos.responses.PaginatedSnippetsDTO
+import dtos.responses.SnippetResponseDTO
+import dtos.responses.StreamSnippetResponseDTO
+import dtos.types.Language
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import common.services.SnippetService
 import security.AuthenticatedUserProviderInt
+import services.SnippetService
 
 @RestController
 @RequestMapping("/snippets")

@@ -11,7 +11,6 @@ import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.handler.TextWebSocketHandler
-import repositories.SnippetRepository
 import java.util.NoSuchElementException
 
 @Component

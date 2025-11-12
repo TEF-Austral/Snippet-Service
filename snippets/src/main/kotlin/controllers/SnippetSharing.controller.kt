@@ -1,10 +1,10 @@
 package controllers
 
 import authorization.AuthorizationService
-import common.dtos.requests.ShareSnippetDTO
-import common.dtos.responses.PermissionsSummaryDTO
-import common.dtos.responses.ShareSnippetResponseDTO
-import common.repositories.SnippetRepository
+import authorization.UserAction
+import dtos.requests.ShareSnippetDTO
+import dtos.responses.PermissionsSummaryDTO
+import dtos.responses.ShareSnippetResponseDTO
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import repositories.SnippetRepository
 import security.AuthenticatedUserProviderInt
 
 @RestController
@@ -38,7 +39,7 @@ class SnippetSharingController(
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = userId,
-                action = "share",
+                action = UserAction.SHARE,
                 snippetId = id.toString(),
                 ownerId = snippet.ownerId,
             )
@@ -85,7 +86,7 @@ class SnippetSharingController(
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = requesterId,
-                action = "share",
+                action = UserAction.SHARE,
                 snippetId = id.toString(),
                 ownerId = snippet.ownerId,
             )

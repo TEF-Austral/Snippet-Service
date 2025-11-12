@@ -1,11 +1,11 @@
 package handlers
 
 import org.springframework.stereotype.Service
-import repositories.SnippetRepository
 import dtos.responses.LintingResultEvent
 import handlers.utils.findSnippetOrThrow
 import handlers.utils.handleException
-import utils.handleLintingSnippetResult
+import handlers.utils.handleLintingSnippetResult
+import repositories.SnippetRepository
 
 @Service
 class LintingResultHandler(

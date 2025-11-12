@@ -2,11 +2,11 @@ package controllers
 
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
-import authorization.Permissions
-import common.dtos.requests.TestExecutionRequestDTO
-import common.dtos.responses.TestExecutionResponseDTO
-import component.PrintScriptServiceClient
+import authorization.UserAction
 import controllers.utils.getSnippet
+import dtos.requests.TestExecutionRequestDTO
+import dtos.responses.TestExecutionResponseDTO
+import language.ExecutionServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,7 +21,7 @@ import security.AuthenticatedUserProviderInt
 @RestController
 @RequestMapping("/tests")
 class TestController(
-    private val printScriptServiceClient: PrintScriptServiceClient,
+    private val executionServiceClient: ExecutionServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationService,
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,
@@ -38,13 +38,13 @@ class TestController(
             getSnippet(
                 request.snippetId,
                 userId,
-                Permissions.EDIT,
+                UserAction.EDIT,
                 snippetRepository,
                 authorizationServiceClient,
             )
 
         val result =
-            printScriptServiceClient.executeTest(
+            executionServiceClient.executeTest(
                 container = snippet.bucketContainer,
                 key =
                     snippet.bucketKey
@@ -67,7 +67,7 @@ class TestController(
             getSnippet(
                 snippetId,
                 userId,
-                Permissions.EDIT,
+                UserAction.EDIT,
                 snippetRepository,
                 authorizationServiceClient,
             )

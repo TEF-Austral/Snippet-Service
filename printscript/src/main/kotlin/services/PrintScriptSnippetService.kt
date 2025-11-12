@@ -2,36 +2,38 @@ package services
 
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
-import authorization.Permissions
-import common.dtos.requests.CreateSnippetRequestDTO
-import common.dtos.requests.SnippetFilterDTO
-import common.dtos.requests.SortField
-import common.dtos.requests.SortOrder
-import common.dtos.requests.UpdateSnippetRequestDTO
-import common.dtos.responses.PaginatedSnippetsDTO
-import common.dtos.responses.SnippetResponseDTO
-import common.dtos.responses.StreamSnippetResponseDTO
+import authorization.UserAction
+import dtos.requests.CreateSnippetRequestDTO
+import dtos.requests.SnippetFilterDTO
+import dtos.requests.SortField
+import dtos.requests.SortOrder
+import dtos.requests.UpdateSnippetRequestDTO
+import dtos.responses.PaginatedSnippetsDTO
+import dtos.responses.SnippetResponseDTO
 import common.dtos.types.ComplianceStatus
 import component.AssetService
-import component.PrintScriptServiceClient
+import component.ExecutionServiceClient
+import dtos.responses.StreamSnippetResponseDTO
 import entity.Snippet
+import filters.SnippetFilterComposer
+import filters.SnippetFilterFactory
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import producers.AsyncTaskProducerInt
 import producers.strategy.TaskType
 import repositories.SnippetRepository
-import repositories.SnippetSpecifications
 
 @Service
 class PrintScriptSnippetService(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetService,
     private val authorizationServiceClient: AuthorizationService,
-    private val printScriptServiceClient: PrintScriptServiceClient,
+    private val printScriptServiceClient: ExecutionServiceClient,
     private val asyncTaskProducer: AsyncTaskProducerInt,
+    private val filterFactory: SnippetFilterFactory,
 ) : SnippetService {
 
     @Transactional
@@ -77,16 +79,15 @@ class PrintScriptSnippetService(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        checkPermission(requesterId, id, snippet, Permissions.READ)
+        checkReadPermission(requesterId, id, snippet)
 
         return snippet.toDto()
     }
 
-    private fun checkPermission(
+    private fun checkReadPermission(
         requesterId: String,
         id: Long,
         snippet: Snippet?,
-        permission: Permissions,
     ) {
         if (snippet == null) {
             throw NoSuchElementException("Snippet not found: $id")
@@ -95,7 +96,7 @@ class PrintScriptSnippetService(
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = requesterId,
-                action = permission,
+                action = UserAction.READ,
                 snippetId = id.toString(),
                 ownerId = snippet.ownerId,
             )
@@ -105,45 +106,22 @@ class PrintScriptSnippetService(
         }
     }
 
-    // TODO
     override fun getMySnippets(
         requesterId: String,
         page: Int,
         pageSize: Int,
         filterDTO: SnippetFilterDTO,
     ): PaginatedSnippetsDTO {
-        val safePage = if (page < 0) 0 else page
-        val safeSize = if (pageSize <= 0) 20 else pageSize
+        val sharedSnippetIds = snippetIdsFor(requesterId)
 
-        val snippetIdsWithReadPermission =
-            authorizationServiceClient.getSnippetsByPermission(
-                userId = requesterId,
-                permission = "read",
-            )
-        val sharedSnippetIds = snippetIdsWithReadPermission.mapNotNull { it.toLongOrNull() }
+        // Create all filters using the factory
+        val filters = filterFactory.createFilters(filterDTO, requesterId, sharedSnippetIds)
 
-        var spec: Specification<Snippet> =
-            SnippetSpecifications.ownershipFilter(
-                requesterId,
-                sharedSnippetIds,
-                filterDTO.ownership.name,
-            )
-
-        filterDTO.name?.let { name ->
-            SnippetSpecifications.nameContains(name)?.let { nameSpec ->
-                spec = spec.and(nameSpec)
-            }
-        }
-
-        filterDTO.language?.let { language ->
-            SnippetSpecifications.hasLanguage(language)?.let { languageSpec ->
-                spec = spec.and(languageSpec)
-            }
-        }
-
-        SnippetSpecifications.complianceFilter(filterDTO.compliance.name)?.let { complianceSpec ->
-            spec = spec.and(complianceSpec)
-        }
+        // Compose filters into a single specification
+        val spec =
+            SnippetFilterComposer()
+                .apply { filters.forEach { addFilter(it) } }
+                .build()
 
         val sortField =
             when (filterDTO.sortBy) {
@@ -158,16 +136,11 @@ class PrintScriptSnippetService(
                 SortOrder.DESC -> Sort.Direction.DESC
             }
 
-        val pageable = PageRequest.of(safePage, safeSize, Sort.by(sortDirection, sortField))
+        val pageable = createPageable(page, pageSize, sortField, sortDirection)
 
         val pageResult = repository.findAll(spec, pageable)
 
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        return toPaginatedSnippetsDTO(pageResult)
     }
 
     override fun getSnippetsThatUserHaveAccess(
@@ -175,25 +148,16 @@ class PrintScriptSnippetService(
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO {
-        val safePage = if (page < 0) 0 else page
-        val safeSize = if (pageSize <= 0) 20 else pageSize
-        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
-        val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
-        val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
+        val pageable = createPageable(page, pageSize, "id", Sort.Direction.DESC)
+        val snippetIds = snippetIdsFor(requesterId)
         val pageResult = repository.findByIdIn(snippetIds, pageable)
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        return toPaginatedSnippetsDTO(pageResult)
     }
 
     override fun getSnippetsThatUserHavePermission(
         requesterId: String,
     ): List<StreamSnippetResponseDTO> {
-        val snippets = authorizationServiceClient.getSnippetsByPermission(requesterId, "read")
-        val snippetIds = snippets.mapNotNull { it.toLongOrNull() }
+        val snippetIds = snippetIdsFor(requesterId)
         val snippetEntities = repository.findAllById(snippetIds)
 
         return snippetEntities.map { snippet ->
@@ -212,27 +176,13 @@ class PrintScriptSnippetService(
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO {
-        val safePage = if (page < 0) 0 else page
-        val safeSize = if (pageSize <= 0) 20 else pageSize
+        val snippetIds = snippetIdsFor(requesterId)
 
-        val snippetIdsWithReadPermission =
-            authorizationServiceClient.getSnippetsByPermission(
-                userId = requesterId,
-                permission = "read",
-            )
-
-        val snippetIds = snippetIdsWithReadPermission.mapNotNull { it.toLongOrNull() }
-
-        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
+        val pageable = createPageable(page, pageSize, "id", Sort.Direction.DESC)
 
         val pageResult = repository.findByOwnerIdOrIdIn(requesterId, snippetIds, pageable)
 
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        return toPaginatedSnippetsDTO(pageResult)
     }
 
     override fun getSnippetThatUserIsOwner(
@@ -240,18 +190,11 @@ class PrintScriptSnippetService(
         page: Int,
         pageSize: Int,
     ): PaginatedSnippetsDTO {
-        val safePage = if (page < 0) 0 else page
-        val safeSize = if (pageSize <= 0) 20 else pageSize
-        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"))
+        val pageable = createPageable(page, pageSize, "id", Sort.Direction.DESC)
 
         val pageResult = repository.findByOwnerId(requesterId, pageable)
 
-        return PaginatedSnippetsDTO(
-            page = pageResult.number,
-            pageSize = pageResult.size,
-            count = pageResult.totalElements,
-            snippets = pageResult.content.map { it.toDto() },
-        )
+        return toPaginatedSnippetsDTO(pageResult)
     }
 
     @Transactional
@@ -268,7 +211,7 @@ class PrintScriptSnippetService(
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = requesterId,
-                action = Permissions.EDIT,
+                action = UserAction.EDIT,
                 snippetId = id.toString(),
                 ownerId = existing.ownerId,
             )
@@ -292,10 +235,8 @@ class PrintScriptSnippetService(
                 content = content,
             )
 
-            // Re-validar después de actualizar contenido
             validateAndUpdateCompliance(existing)
 
-            // <-- 4. LLAMAR A LA NUEVA FUNCIÓN HELPER
             triggerAsyncTesting(existing)
         }
 
@@ -317,7 +258,7 @@ class PrintScriptSnippetService(
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = requesterId,
-                action = "delete",
+                action = UserAction.DELETE,
                 snippetId = id.toString(),
                 ownerId = existing.ownerId,
             )
@@ -391,7 +332,9 @@ class PrintScriptSnippetService(
             language = this.language,
             version = this.version,
             author = this.author,
-            content = assetServiceClient.getAsset(this.bucketContainer, this.bucketKey!!),
+            content =
+                assetServiceClient.getAsset(this.bucketContainer, this.bucketKey!!)
+                    ?: throw IllegalStateException("No content found for snippet"),
             complianceStatus = this.complianceStatus.name,
             validationErrors = this.lastValidationError,
         )
@@ -407,4 +350,29 @@ class PrintScriptSnippetService(
             content = requestDTO.content ?: "",
         )
     }
+
+    private fun safePage(page: Int) = if (page < 0) 0 else page
+
+    private fun safeSize(pageSize: Int) = if (pageSize <= 0) 20 else pageSize
+
+    private fun createPageable(
+        page: Int,
+        pageSize: Int,
+        sortField: String,
+        direction: Sort.Direction,
+    ): PageRequest =
+        PageRequest.of(safePage(page), safeSize(pageSize), Sort.by(direction, sortField))
+
+    private fun toPaginatedSnippetsDTO(pageResult: Page<Snippet>): PaginatedSnippetsDTO =
+        PaginatedSnippetsDTO(
+            page = pageResult.number,
+            pageSize = pageResult.size,
+            count = pageResult.totalElements,
+            snippets = pageResult.content.map { it.toDto() },
+        )
+
+    private fun snippetIdsFor(userId: String): List<Long> =
+        authorizationServiceClient.getSnippetsByPermission(userId, "read").mapNotNull {
+            it.toLongOrNull()
+        }
 }

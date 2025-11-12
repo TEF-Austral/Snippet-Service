@@ -1,6 +1,6 @@
 package dtos.responses
 
-import common.dtos.responses.LintViolationDTO
+import dtos.responses.LintViolationDTO
 
 data class ValidationResponseDTO(
     val isValid: Boolean,

@@ -5,7 +5,7 @@ import authorization.AuthorizationServiceClient
 import common.dtos.requests.CreateSnippetRequestDTO
 import common.dtos.requests.UpdateSnippetRequestDTO
 import component.AssetServiceClient
-import component.PrintScriptServiceClient
+import component.ExecutionServiceClient
 import dtos.types.Language
 import entity.Snippet
 import org.junit.jupiter.api.Test
@@ -24,7 +24,6 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.never
 import producers.AsyncTaskProducer
 import producers.strategy.TaskType
-import repositories.SnippetRepository
 import services.PrintScriptSnippetService
 
 @ExtendWith(MockitoExtension::class)
@@ -40,7 +39,7 @@ class SnippetServiceImplTest {
     private lateinit var authorizationServiceClient: AuthorizationServiceClient
 
     @Mock
-    private lateinit var printScriptServiceClient: PrintScriptServiceClient
+    private lateinit var printScriptServiceClient: ExecutionServiceClient
 
     @Mock
     private lateinit var asyncTaskProducer: AsyncTaskProducer

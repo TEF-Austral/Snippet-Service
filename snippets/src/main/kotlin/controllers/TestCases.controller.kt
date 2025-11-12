@@ -1,11 +1,11 @@
 package controllers
 
 import authorization.AuthorizationServiceClient
-import authorization.Permissions
-import common.dtos.requests.CreateTestRequestDTO
-import common.dtos.responses.TestDTO
-import component.PrintScriptServiceClient
+import authorization.UserAction
 import controllers.utils.getSnippet
+import dtos.requests.CreateTestRequestDTO
+import dtos.responses.TestDTO
+import language.ExecutionServiceClientInt
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -23,7 +23,7 @@ import security.AuthenticatedUserProvider
 @RestController
 @RequestMapping("/testcases")
 class TestCasesController(
-    private val printScriptServiceClient: PrintScriptServiceClient,
+    private val executionServiceClient: ExecutionServiceClientInt,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
@@ -38,12 +38,12 @@ class TestCasesController(
         getSnippet(
             request.snippetId,
             userId,
-            Permissions.EDIT,
+            UserAction.EDIT,
             snippetRepository,
             authorizationServiceClient,
         )
 
-        val test = printScriptServiceClient.createTestCase(request)
+        val test = executionServiceClient.createTestCase(request)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(test)
     }
@@ -57,12 +57,12 @@ class TestCasesController(
         getSnippet(
             snippetId,
             userId,
-            Permissions.READ,
+            UserAction.READ,
             snippetRepository,
             authorizationServiceClient,
         )
 
-        val tests = printScriptServiceClient.getTestsBySnippet(snippetId)
+        val tests = executionServiceClient.getTestsBySnippet(snippetId)
 
         return ResponseEntity.ok(tests)
     }
@@ -71,14 +71,14 @@ class TestCasesController(
     fun getTest(
         @PathVariable id: Long,
     ): ResponseEntity<TestDTO> {
-        val test = printScriptServiceClient.getTestById(id)
+        val test = executionServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         getSnippet(
             test.snippetId,
             userId,
-            Permissions.READ,
+            UserAction.READ,
             snippetRepository,
             authorizationServiceClient,
         )
@@ -90,19 +90,19 @@ class TestCasesController(
     fun deleteTest(
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
-        val test = printScriptServiceClient.getTestById(id)
+        val test = executionServiceClient.getTestById(id)
 
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         getSnippet(
             test.snippetId,
             userId,
-            Permissions.EDIT,
+            UserAction.EDIT,
             snippetRepository,
             authorizationServiceClient,
         )
 
-        printScriptServiceClient.deleteTestCase(id)
+        executionServiceClient.deleteTestCase(id)
         return ResponseEntity.noContent().build()
     }
 
@@ -111,18 +111,18 @@ class TestCasesController(
         @PathVariable id: Long,
         @RequestBody request: CreateTestRequestDTO,
     ): ResponseEntity<TestDTO> {
-        val test = printScriptServiceClient.getTestById(id)
+        val test = executionServiceClient.getTestById(id)
         val userId = authenticatedUserProvider.getCurrentUserId()
 
         getSnippet(
             test.snippetId,
             userId,
-            Permissions.EDIT,
+            UserAction.EDIT,
             snippetRepository,
             authorizationServiceClient,
         )
 
-        printScriptServiceClient.updateTestCase(id, request)
+        executionServiceClient.updateTestCase(id, request)
         return ResponseEntity.ok(test)
     }
 }
