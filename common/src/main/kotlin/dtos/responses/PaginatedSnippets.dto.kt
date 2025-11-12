@@ -1,4 +1,4 @@
-package common.dtos.responses
+package dtos.responses
 
 data class PaginatedSnippetsDTO(
     val page: Int,

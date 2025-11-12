@@ -1,6 +1,6 @@
-package common.dtos.requests
+package dtos.requests
 
-import common.dtos.types.Language
+import dtos.types.Language
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 

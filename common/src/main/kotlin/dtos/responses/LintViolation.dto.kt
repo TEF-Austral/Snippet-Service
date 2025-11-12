@@ -1,4 +1,4 @@
-package common.dtos.responses
+package dtos.responses
 
 data class LintViolationDTO(
     val message: String,

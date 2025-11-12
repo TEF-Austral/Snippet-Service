@@ -1,5 +1,6 @@
-package common.dtos.requests
-import common.dtos.types.Language
+package dtos.requests
+
+import dtos.types.Language
 
 data class SnippetFilterDTO(
     val ownership: OwnershipFilter = OwnershipFilter.ALL,

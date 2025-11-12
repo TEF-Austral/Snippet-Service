@@ -1,4 +1,4 @@
-package common.dtos.requests
+package dtos.requests
 
 data class CreateTestRequestDTO(
     val snippetId: Long,

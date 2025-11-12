@@ -1,4 +1,4 @@
-package common.dtos.requests
+package dtos.requests
 
 data class ValidateContentRequestDTO(
     val content: String,
