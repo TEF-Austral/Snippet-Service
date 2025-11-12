@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/filetypes")
 class FileTypeController {
+    private val log = org.slf4j.LoggerFactory.getLogger(FileTypeController::class.java)
 
     @GetMapping
     fun getFileTypes(): ResponseEntity<List<FileTypeDTO>> {
+        log.info("GET /filetypes - Fetching available file types")
         val fileTypes =
             listOf(
                 FileTypeDTO("PRINTSCRIPT", "prs"),
@@ -19,6 +21,7 @@ class FileTypeController {
                 FileTypeDTO("PYTHON", "py"),
                 FileTypeDTO("GOLANG", "go"),
             )
+        log.warn("GET /filetypes - Retrieved ${fileTypes.size} file types")
         return ResponseEntity.ok(fileTypes)
     }
 }
