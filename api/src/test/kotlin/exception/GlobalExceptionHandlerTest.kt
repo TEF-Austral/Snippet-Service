@@ -1,5 +1,6 @@
 package exception
 
+import api.exception.GlobalExceptionHandler
 import org.junit.jupiter.api.Test
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpStatus
@@ -8,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import kotlin.test.assertEquals
-import snippet.exception.GlobalExceptionHandler
 
 class GlobalExceptionHandlerTest {
 

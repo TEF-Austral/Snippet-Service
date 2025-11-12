@@ -1,5 +1,6 @@
 package snippet.controllers
 
+import authorization.AuthorizationServiceClient
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -8,12 +9,11 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
-import snippet.component.AuthorizationServiceClient
-import snippet.dtos.ShareSnippetDTO
-import snippet.entities.Snippet
-import snippet.repositories.SnippetRepository
-import snippet.security.AuthenticatedUserProvider
+import common.entities.Snippet
+import common.repositories.SnippetRepository
 import common.Language
+import common.dtos.requests.ShareSnippetDTO
+import security.AuthenticatedUserProvider
 import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

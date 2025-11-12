@@ -1,6 +1,7 @@
 package snippet.entities
 
 import common.Language
+import common.entities.Snippet
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

@@ -1,0 +1,21 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group = 'com.github.tef-austral.snippet-service'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation project(':common')
+}
+
+test {
+    useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
+}

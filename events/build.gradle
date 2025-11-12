@@ -13,6 +13,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation project(':common')
+    implementation project(':snippets')
+
 }
 
 test {

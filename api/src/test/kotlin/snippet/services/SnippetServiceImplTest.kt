@@ -1,6 +1,13 @@
 package snippet.services
 
-import common.Language
+import AsyncTaskRequestContext
+import authorization.AuthorizationServiceClient
+import common.dtos.requests.CreateSnippetRequestDTO
+import common.dtos.requests.UpdateSnippetRequestDTO
+import component.AssetServiceClient
+import component.PrintScriptServiceClient
+import dtos.types.Language
+import entity.Snippet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -8,21 +15,17 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
-import snippet.component.AssetServiceClient
-import snippet.component.AuthorizationServiceClient
-import snippet.component.PrintScriptServiceClient
-import snippet.dtos.requests.CreateSnippetRequestDTO
-import snippet.dtos.requests.UpdateSnippetRequestDTO
-import snippet.entities.Snippet
-import snippet.repositories.SnippetRepository
 import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyLong // <-- IMPORTACIÓN AÑADIDA
-import org.mockito.ArgumentMatchers.anyString // <-- IMPORTACIÓN AÑADIDA
+import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.never
-import snippet.producers.AsyncTaskProducer
+import producers.AsyncTaskProducer
+import producers.strategy.TaskType
+import repositories.SnippetRepository
+import services.PrintScriptSnippetService
 
 @ExtendWith(MockitoExtension::class)
 class SnippetServiceImplTest {
@@ -43,7 +46,7 @@ class SnippetServiceImplTest {
     private lateinit var asyncTaskProducer: AsyncTaskProducer
 
     @InjectMocks
-    private lateinit var service: SnippetServiceImpl
+    private lateinit var service: PrintScriptSnippetService
 
     @Test
     fun `createSnippet should create and save snippet successfully`() {
@@ -285,12 +288,20 @@ class SnippetServiceImplTest {
         assertEquals("Old Desc", existing.description)
         assertEquals(Language.PRINTSCRIPT, existing.language)
 
-        // Verifica que NO se disparó el evento de testing
-        // <-- LÍNEA CORREGIDA
+        val context =
+            AsyncTaskRequestContext(
+                anyLong(),
+                bucketContainer = anyString(),
+                bucketKey = anyString(),
+                version = "1.1",
+                languageId = "printscript",
+                userId = anyString(),
+            )
+
         verify(
             asyncTaskProducer,
             never(),
-        ).requestTesting(anyLong(), anyString(), anyString(), anyString())
+        ).request(TaskType.TESTING, context)
     }
 
     @Test
@@ -449,19 +460,22 @@ class SnippetServiceImplTest {
             ),
         ).thenReturn("new content") // Para el toDto()
 
-        // Act
         service.updateSnippet(snippetId, updateDTO, requesterId)
 
-        // Assert
-        // Verifica que el contenido se guardó
         verify(assetServiceClient).createOrUpdateAsset("snippets", "test-key", "new content")
 
-        // Verifica que se disparó el evento de testing asíncrono
-        verify(asyncTaskProducer).requestTesting(
-            snippetId = 1L,
-            bucketContainer = "snippets",
-            bucketKey = "test-key",
-            version = "1.0",
+        val context =
+            AsyncTaskRequestContext(
+                snippetId = 1L,
+                bucketContainer = "snippets",
+                bucketKey = "test-key",
+                version = "1.0",
+                languageId = "printscript",
+            )
+
+        verify(asyncTaskProducer).request(
+            TaskType.TESTING,
+            context,
         )
     }
 }

@@ -13,6 +13,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation project(':events')
     implementation project(':common')
+    implementation project(':authorization')
+    implementation project(':security')
+    implementation project(':snippets')
+    implementation project(':assets')
+    implementation project(':printscript')
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation("com.newrelic.agent.java:newrelic-api:8.11.0")
 }
