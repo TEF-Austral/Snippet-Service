@@ -1,5 +1,6 @@
 package snippet.controllers
 
+import controllers.FileTypeController
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import kotlin.test.assertEquals
