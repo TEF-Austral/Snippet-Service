@@ -60,6 +60,7 @@ class TestController(
                 key = bucketKey,
                 version = request.version,
                 testId = request.testId,
+                language = snippet.language.name,
             )
 
         log.info(

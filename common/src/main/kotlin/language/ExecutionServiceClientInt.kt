@@ -12,12 +12,14 @@ interface ExecutionServiceClientInt {
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): ValidationResponseDTO
 
     fun compileSnippet(
         container: String,
         key: String,
         version: String,
+        language: String,
     ): ValidationResponseDTO
 
     fun formatSnippet(
@@ -25,6 +27,7 @@ interface ExecutionServiceClientInt {
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): String
 
     fun previewFormat(
@@ -32,6 +35,7 @@ interface ExecutionServiceClientInt {
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): String
 
     fun executeTest(
@@ -39,12 +43,14 @@ interface ExecutionServiceClientInt {
         key: String,
         version: String,
         testId: Long,
+        language: String,
     ): TestExecutionResponseDTO
 
     fun downloadFormatted(
         container: String,
         key: String,
         version: String,
+        language: String,
     ): ByteArray
 
     fun createTestCase(request: CreateTestRequestDTO): TestDTO
@@ -58,6 +64,7 @@ interface ExecutionServiceClientInt {
     fun validateContent(
         content: String,
         version: String,
+        language: String,
     ): ValidationResponseDTO
 
     fun updateTestCase(

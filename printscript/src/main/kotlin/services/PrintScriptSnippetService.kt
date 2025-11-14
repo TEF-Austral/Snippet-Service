@@ -318,6 +318,7 @@ class PrintScriptSnippetService(
                     key = snippet.bucketKey!!,
                     version = snippet.version,
                     userId = snippet.ownerId,
+                    language = snippet.language.name,
                 )
 
             if (validation.isValid) {

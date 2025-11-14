@@ -1,7 +1,7 @@
 package controllers
 
-import dtos.responses.ValidationResponseDTO
 import dtos.requests.ValidateContentRequestDTO
+import dtos.responses.ValidationResponseDTO
 import language.ExecutionServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,11 +20,14 @@ class ValidateContentController(
     fun validateContent(
         @RequestBody request: ValidateContentRequestDTO,
     ): ResponseEntity<ValidationResponseDTO> {
-        log.info("POST /snippets/validate-content - Validating content, version ${request.version}")
+        log.info(
+            "POST /snippets/validate-content - Validating content, version ${request.version}, language ${request.language}",
+        )
         val result =
             executionServiceClient.validateContent(
                 content = request.content,
                 version = request.version,
+                language = request.language,
             )
 
         log.warn("POST /snippets/validate-content - Content validated, isValid: ${result.isValid}")

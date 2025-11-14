@@ -61,6 +61,7 @@ class FormatController(
                 key = bucketKey,
                 version = version,
                 userId = userId,
+                language = snippet.language.name,
             )
 
         log.info("Snippet formatted successfully: snippetId=$snippetId")
@@ -99,6 +100,7 @@ class FormatController(
                 key = bucketKey,
                 version = version,
                 userId = userId,
+                language = snippet.language.name,
             )
 
         log.info("Format preview generated successfully: snippetId=$snippetId")
@@ -136,6 +138,7 @@ class FormatController(
                 container = snippet.bucketContainer,
                 key = bucketKey,
                 version = version,
+                language = snippet.language.name,
             )
 
         val resource = ByteArrayResource(formattedBytes)

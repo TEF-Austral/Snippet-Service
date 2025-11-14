@@ -3,8 +3,8 @@ package controllers
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
 import authorization.UserAction
-import dtos.responses.ValidationResponseDTO
 import controllers.utils.getSnippet
+import dtos.responses.ValidationResponseDTO
 import language.ExecutionServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -46,6 +46,8 @@ class AnalyzeController(
                 authorizationServiceClient,
             )
 
+        val language = snippet.language.name
+
         val result =
             executionServiceClient.analyzeSnippet(
                 container = snippet.bucketContainer,
@@ -54,6 +56,7 @@ class AnalyzeController(
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
                 userId = userId,
+                language = language,
             )
 
         log.info("Snippet analysis completed: snippetId=$snippetId, success=${result.isValid}")
@@ -77,6 +80,8 @@ class AnalyzeController(
                 authorizationServiceClient,
             )
 
+        val language = snippet.language.name
+
         val result =
             executionServiceClient.compileSnippet(
                 container = snippet.bucketContainer,
@@ -84,6 +89,7 @@ class AnalyzeController(
                     snippet.bucketKey
                         ?: throw IllegalStateException("Snippet has no bucket key"),
                 version = version,
+                language = language,
             )
 
         log.info("Snippet compilation completed: snippetId=$snippetId, success=${result.isValid}")
