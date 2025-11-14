@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate
 @Component
 class ExecutionServiceClient(
     private val restTemplate: RestTemplate,
-    @param:Value($$"${printscript.service.url}") private val printScriptServiceUrl: String,
+    @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) : ExecutionServiceClientInt {
 
     override fun analyzeSnippet(
@@ -24,10 +24,11 @@ class ExecutionServiceClient(
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): ValidationResponseDTO {
         val url =
             "$printScriptServiceUrl/analyze?container" +
-                "=$container&key=$key&version=$version&userId=$userId"
+                "=$container&key=$key&version=$version&userId=$userId&language=$language"
 
         return restTemplate.getForObject(
             url,
@@ -39,10 +40,11 @@ class ExecutionServiceClient(
         container: String,
         key: String,
         version: String,
+        language: String,
     ): ValidationResponseDTO {
         val url =
             "$printScriptServiceUrl/analyze" +
-                "/compile?container=$container&key=$key&version=$version"
+                "/compile?container=$container&key=$key&version=$version&language=$language"
 
         return restTemplate.getForObject(url, ValidationResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to compile snippet")
@@ -53,10 +55,11 @@ class ExecutionServiceClient(
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): String {
         val url =
             "$printScriptServiceUrl/format?container" +
-                "=$container&key=$key&version=$version&userId=$userId"
+                "=$container&key=$key&version=$version&userId=$userId&language=$language"
 
         return restTemplate.postForObject(url, null, String::class.java)
             ?: throw IllegalStateException("Failed to format snippet")
@@ -67,10 +70,11 @@ class ExecutionServiceClient(
         key: String,
         version: String,
         userId: String,
+        language: String,
     ): String {
         val url =
             "$printScriptServiceUrl/format" +
-                "/preview?container=$container&key=$key&version=$version&userId=$userId"
+                "/preview?container=$container&key=$key&version=$version&userId=$userId&language=$language"
 
         return restTemplate.postForObject(url, null, String::class.java)
             ?: throw IllegalStateException("Failed to preview format")
@@ -81,10 +85,11 @@ class ExecutionServiceClient(
         key: String,
         version: String,
         testId: Long,
+        language: String,
     ): TestExecutionResponseDTO {
         val url =
             "$printScriptServiceUrl/tests" +
-                "/execute?container=$container&key=$key&version=$version&testId=$testId"
+                "/execute?container=$container&key=$key&version=$version&testId=$testId&language=$language"
 
         return restTemplate.postForObject(url, null, TestExecutionResponseDTO::class.java)
             ?: throw IllegalStateException("Failed to execute test")
@@ -94,10 +99,11 @@ class ExecutionServiceClient(
         container: String,
         key: String,
         version: String,
+        language: String,
     ): ByteArray {
         val url =
             "$printScriptServiceUrl/download" +
-                "/formatted?container=$container&key=$key&version=$version"
+                "/formatted?container=$container&key=$key&version=$version&language=$language"
 
         return restTemplate.postForObject(url, null, ByteArray::class.java)
             ?: throw IllegalStateException("Failed to download formatted content")
@@ -145,8 +151,9 @@ class ExecutionServiceClient(
     override fun validateContent(
         content: String,
         version: String,
+        language: String,
     ): ValidationResponseDTO {
-        val url = "$printScriptServiceUrl/analyze/validate?version=$version"
+        val url = "$printScriptServiceUrl/analyze/validate?version=$version&language=$language"
 
         val headers =
             HttpHeaders().apply {
