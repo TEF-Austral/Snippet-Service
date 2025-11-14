@@ -29,7 +29,7 @@ class AuthenticatedUserProvider : AuthenticatedUserProviderInt {
 
         val jwt = authentication.principal as? Jwt ?: return null
 
-        return jwt.getClaim("name") as? String
+        return jwt.getClaim("username") as? String
             ?: jwt.getClaim("preferred_username") as? String
             ?: jwt.getClaim("email") as? String
             ?: jwt.subject
