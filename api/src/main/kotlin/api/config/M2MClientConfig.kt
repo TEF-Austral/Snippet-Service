@@ -21,12 +21,11 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
-import kotlin.collections.get
 
 @Configuration
 class M2MClientConfig {
 
-    @Value($$"${auth0.audience}")
+    @Value("\${auth0.audience}")
     private lateinit var audience: String
 
     @Bean
@@ -101,10 +100,7 @@ class M2MClientConfig {
 
                 val authorizedClient =
                     manager.authorize(authorizeRequest)
-                        ?: throw
-                        OAuth2AuthenticationException(
-                            "M2M client authorization failed",
-                        )
+                        ?: throw OAuth2AuthenticationException("M2M client authorization failed")
 
                 request.headers.add(
                     HttpHeaders.AUTHORIZATION,
@@ -114,8 +110,7 @@ class M2MClientConfig {
                 execution.execute(request, body)
             }
 
-        val requestIdInterceptor = RequestIdPropagationInterceptor()
-        restTemplate.interceptors = listOf(requestIdInterceptor, oauth2Interceptor)
+        restTemplate.interceptors = listOf(oauth2Interceptor)
 
         return restTemplate
     }

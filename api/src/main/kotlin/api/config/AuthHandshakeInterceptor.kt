@@ -51,6 +51,5 @@ class AuthHandshakeInterceptor : HandshakeInterceptor {
         wsHandler: WebSocketHandler,
         exception: Exception?,
     ) {
-        // No action needed after handshake
     }
 }
