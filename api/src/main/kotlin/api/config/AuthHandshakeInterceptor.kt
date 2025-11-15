@@ -1,20 +1,23 @@
 package api.config
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.jwt.JwtException // 1. Importar la excepción
+import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketHandler
 import org.springframework.web.socket.server.HandshakeInterceptor
-import java.net.URLDecoder // 2. Importar el decodificador
-import java.nio.charset.StandardCharsets // 3. Importar el charset
+import org.springframework.web.util.UriComponentsBuilder
+import java.lang.Exception
 
 @Component
 class AuthHandshakeInterceptor(
     private val jwtDecoder: JwtDecoder,
 ) : HandshakeInterceptor {
+    private val log = LoggerFactory.getLogger(AuthHandshakeInterceptor::class.java)
+
     override fun beforeHandshake(
         request: ServerHttpRequest,
         response: ServerHttpResponse,
@@ -22,46 +25,36 @@ class AuthHandshakeInterceptor(
         attributes: MutableMap<String, Any>,
     ): Boolean {
         try {
-            val uri = request.uri
-            val query = uri.query ?: ""
+            val queryParams = UriComponentsBuilder.fromUri(request.uri).build().queryParams
 
-            // --- INICIO DE CORRECCIÓN: Decodificar la URL ---
-            val params =
-                query
-                    .split('&')
-                    .mapNotNull {
-                        val parts = it.split('=', limit = 2)
-                        if (parts.size == 2) {
-                            val key = URLDecoder.decode(parts[0], StandardCharsets.UTF_8.name())
-                            val value = URLDecoder.decode(parts[1], StandardCharsets.UTF_8.name())
-                            key to value
-                        } else {
-                            null
-                        }
-                    }.associate { it }
-            // --- FIN DE CORRECCIÓN ---
+            val snippetId = queryParams.getFirst("snippetId")?.toLongOrNull()
+            val token = queryParams.getFirst("token")
 
-            val token = params["token"]
-
-            // --- INICIO DE CORRECCIÓN: Validación de JWT ---
-            if (token == null) {
+            if (snippetId == null || token.isNullOrBlank()) {
+                log.warn(
+                    "WebSocket handshake rejected: missing snippetId or token. uri=${request.uri}",
+                )
                 response.setStatusCode(HttpStatus.FORBIDDEN)
                 return false
             }
 
-            // Validación estándar: Intenta decodificar.
-            // Si falla (expirado, firma mala, etc.), lanza JwtException.
-            jwtDecoder.decode(token)
+            try {
+                jwtDecoder.decode(token)
+            } catch (e: JwtException) {
+                log.warn("WebSocket handshake rejected: Invalid JWT. ${e.message}")
+                response.setStatusCode(HttpStatus.FORBIDDEN)
+                return false
+            }
 
-            // Si llegamos aquí, el token es válido.
+            attributes["snippetId"] = snippetId
             attributes["token"] = token
+            log.info("WebSocket handshake accepted: snippetId=$snippetId")
             return true
-        } catch (e: JwtException) {
-            // El token es inválido
-            response.setStatusCode(HttpStatus.FORBIDDEN)
-            return false
         } catch (e: Exception) {
-            // Otro error (ej. parsing de URL)
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error("WebSocket handshake error at $location: ${e.message}, uri=${request.uri}", e)
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
             return false
         }
@@ -73,6 +66,6 @@ class AuthHandshakeInterceptor(
         wsHandler: WebSocketHandler,
         exception: Exception?,
     ) {
-        // No se necesita implementación
+        // No action needed after handshake
     }
 }
