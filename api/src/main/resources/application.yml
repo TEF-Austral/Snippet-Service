@@ -81,7 +81,7 @@ management:
 
 app:
   websocket:
-    allowed-origins: "https://printscriptdev.duckdns.org"
+    allowed-origins: "https://printscript.duckdns.org"
 
   endpoint:
     health:
