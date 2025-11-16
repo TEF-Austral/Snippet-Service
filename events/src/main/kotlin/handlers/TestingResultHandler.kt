@@ -13,7 +13,7 @@ class TestingResultHandler : TestingResultHandlerInt {
             log.info(
                 "Processing testing result: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
             )
-
+// Hola fondo norte
             if (result.passed) {
                 log.info(
                     "Test passed: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
