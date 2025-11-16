@@ -7,21 +7,15 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @SpringBootApplication(
     scanBasePackages = [
-        "events", "common", "security",
-        "authorization", "consumers", "handlers",
-        "config", "producers", "api", "assets",
-        "repositories", "component", "filters",
-        "controllers", "services",
+        "events", "common", "security", "authorization", "consumers", "handlers",
+        "config", "producers", "api", "assets", "repositories", "component", "filters",
+        "controllers", "services", "service", // include service packages
+
         // Módulo 'api'
         "api",
 
         // Módulo 'events'
-        "config",
-        "consumers",
-        "events",
-        "handlers",
-        "producers",
-        "requests",
+        "config", "consumers", "events", "handlers", "producers", "requests",
 
         // Módulo 'common'
         "repositories",
@@ -30,7 +24,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "component",
 
         // Módulos 'printscript' y 'snippets'
-        "services",
+        "services", "service",
 
         // Módulo 'security'
         "security",
@@ -39,8 +33,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "authorization",
 
         // Módulo 'snippets'
-        "controllers",
-        "filters",
+        "controllers", "filters",
     ],
 )
 @EnableJpaRepositories("repositories")

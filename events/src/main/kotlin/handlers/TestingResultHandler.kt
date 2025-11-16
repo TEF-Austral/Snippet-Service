@@ -1,47 +1,48 @@
 package handlers
 
-import dtos.responses.TestingResultEvent
 import org.slf4j.LoggerFactory
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
+import dtos.responses.TestingResultEvent
+import service.WebSocketNotificationService
 
 @Service
 class TestingResultHandler(
-    private val messagingTemplate: SimpMessagingTemplate,
+    private val webSocketNotificationService: WebSocketNotificationService,
 ) : TestingResultHandlerInt {
-
     private val log = LoggerFactory.getLogger(TestingResultHandler::class.java)
 
     override fun handleTestingResult(result: TestingResultEvent) {
         try {
             log.info(
-                "📋 Resultado de Test Recibido: testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
+                "📋 Test Result Received - testId=${result.testId}, snippetId=${result.snippetId}, requestId=${result.requestId}",
             )
 
             if (result.passed) {
                 log.info(
-                    "✅ TEST APROBADO: testId=${result.testId}, snippetId=${result.snippetId}",
+                    "✅ TEST PASSED - testId=${result.testId}, snippetId=${result.snippetId}",
                 )
+                log.debug("Expected: ${result.expectedOutputs}")
+                log.debug("Actual: ${result.outputs}")
             } else {
                 log.warn(
                     "❌ TEST FAILED - testId=${result.testId}, snippetId=${result.snippetId}",
                 )
-                log.debug("Expected outputs: {}", result.expectedOutputs)
-                log.debug("Actual outputs: {}", result.outputs)
+                log.warn("Expected outputs: ${result.expectedOutputs}")
+                log.warn("Actual outputs: ${result.outputs}")
+
                 if (result.errors.isNotEmpty()) {
-                    log.warn("Test errors: ${result.errors.joinToString(", ")}")
+                    log.error("Errors: ${result.errors.joinToString(", ")}")
                 }
             }
 
-            val topic = "/topic/snippet/${result.snippetId}/test-results"
-            messagingTemplate.convertAndSend(topic, result)
-            log.info("Resultado de test enviado a WebSocket topic: $topic")
+            // Send WebSocket notification to connected clients
+            webSocketNotificationService.sendTestResult(result)
         } catch (e: Exception) {
             val stackTrace = e.stackTrace.firstOrNull()
             val location =
                 stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
             log.error(
-                "Error procesando testing result para test ${result.testId} en $location: ${e.message}",
+                "Error processing testing result for test ${result.testId} at $location: ${e.message}",
                 e,
             )
         }
