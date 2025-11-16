@@ -20,6 +20,7 @@ dependencies {
     implementation project(':printscript')
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation("com.newrelic.agent.java:newrelic-api:8.11.0")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 tasks.named('bootJar') {
