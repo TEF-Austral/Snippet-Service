@@ -88,7 +88,6 @@ class InteractiveExecutionProxyHandler(
 
             val upstreamHandler = UpstreamHandler(downstreamSession)
 
-            // CAMBIO CRÍTICO: Usar ws:// en lugar de wss:// para conexiones internas
             val upstreamUrl =
                 "ws://$printScriptServiceDomain/ws/execute-interactive?token=$m2mToken"
 
