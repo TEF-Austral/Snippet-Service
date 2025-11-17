@@ -33,10 +33,9 @@ class WebSocketConfig(
             .withSockJS()
     }
 
-    // Register custom WebSocket handler for interactive execution
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
         registry
-            .addHandler(proxyHandler, "/ws/execute-interactive")
+            .addHandler(proxyHandler, "/api/ws/execute-interactive") // <-- NUEVA RUTA
             .addInterceptors(authInterceptor)
             .setAllowedOrigins(allowedOrigins)
     }
