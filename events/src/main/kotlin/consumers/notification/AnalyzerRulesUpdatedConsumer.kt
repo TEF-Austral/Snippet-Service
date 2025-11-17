@@ -3,8 +3,11 @@ package consumers.notification
 import events.AnalyzerRulesUpdatedEvent
 import handlers.rules.RuleType
 import handlers.rules.RulesUpdatedHandler
+import jakarta.annotation.PreDestroy
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.slf4j.LoggerFactory
@@ -16,9 +19,6 @@ import org.springframework.data.redis.stream.StreamReceiver
 import org.springframework.stereotype.Component
 import java.time.Duration
 
-// TODO SE PODRIA CAMBIAR GLOBALSCOPE POR CoroutineScope, porque el GlocbalScope
-// creo que puede tarer problemas
-
 @Component
 @Profile("!test")
 class AnalyzerRulesUpdatedConsumer(
@@ -28,13 +28,14 @@ class AnalyzerRulesUpdatedConsumer(
     private val handler: RulesUpdatedHandler,
 ) : RedisStreamConsumer<AnalyzerRulesUpdatedEvent>(streamKey, consumerGroup, redis) {
     private val log = LoggerFactory.getLogger(AnalyzerRulesUpdatedConsumer::class.java)
+    private val componentScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessage(record: ObjectRecord<String, AnalyzerRulesUpdatedEvent>) {
         try {
             val event = record.value
             log.info("Received analyzer rules updated event: userId=${event.userId}")
 
-            GlobalScope.launch(Dispatchers.IO) {
+            componentScope.launch {
                 try {
                     handler.handle(RuleType.Lint, event.userId)
                 } catch (e: Exception) {
@@ -68,4 +69,9 @@ class AnalyzerRulesUpdatedConsumer(
             .pollTimeout(Duration.ofMillis(10000))
             .targetType(AnalyzerRulesUpdatedEvent::class.java)
             .build()
+
+    @PreDestroy
+    fun onComponentDestroy() {
+        componentScope.cancel()
+    }
 }

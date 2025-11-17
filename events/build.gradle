@@ -10,6 +10,9 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.1.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation project(':common')

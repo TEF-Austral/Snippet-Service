@@ -3,8 +3,11 @@ package consumers.notification
 import events.FormattingRulesUpdatedEvent
 import handlers.rules.RuleType
 import handlers.rules.RulesUpdatedHandler
+import jakarta.annotation.PreDestroy
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.slf4j.LoggerFactory
@@ -24,6 +27,9 @@ class FormattingRulesUpdatedConsumer(
     redis: RedisTemplate<String, String>,
     private val handler: RulesUpdatedHandler,
 ) : RedisStreamConsumer<FormattingRulesUpdatedEvent>(streamKey, consumerGroup, redis) {
+
+    private val componentScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private val log = LoggerFactory.getLogger(FormattingRulesUpdatedConsumer::class.java)
 
     override fun onMessage(record: ObjectRecord<String, FormattingRulesUpdatedEvent>) {
@@ -31,7 +37,7 @@ class FormattingRulesUpdatedConsumer(
             val event = record.value
             log.info("Received formatting rules updated event: userId=${event.userId}")
 
-            GlobalScope.launch(Dispatchers.IO) {
+            componentScope.launch {
                 try {
                     handler.handle(RuleType.Format, event.userId)
                 } catch (e: Exception) {
@@ -54,6 +60,12 @@ class FormattingRulesUpdatedConsumer(
                 e,
             )
         }
+    }
+
+    @PreDestroy
+    fun onComponentDestroy() {
+        log.info("Component destroyed, cancelling coroutine scope.")
+        componentScope.cancel()
     }
 
     override fun options(): StreamReceiver.StreamReceiverOptions<
