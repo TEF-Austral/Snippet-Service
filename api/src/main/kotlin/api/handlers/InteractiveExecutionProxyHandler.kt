@@ -23,7 +23,7 @@ class InteractiveExecutionProxyHandler(
     private val authorizationServiceClient: AuthorizationService,
     private val jwtDecoder: JwtDecoder,
     private val m2mClientManager: OAuth2AuthorizedClientManager,
-    @param:Value($$"${printscript.service.url}") private val printScriptServiceUrl: String,
+    @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) : TextWebSocketHandler() {
     private val log = LoggerFactory.getLogger(InteractiveExecutionProxyHandler::class.java)
     private val webSocketClient = StandardWebSocketClient()
