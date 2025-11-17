@@ -88,7 +88,6 @@ class InteractiveExecutionProxyHandler(
 
             val upstreamHandler = UpstreamHandler(downstreamSession)
 
-            // Use ws:// for internal Docker communication (not wss://)
             val upstreamUrl =
                 "$printScriptServiceUrl/ws/execute-interactive?token=$m2mToken"
 
