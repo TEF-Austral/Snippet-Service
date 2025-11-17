@@ -23,7 +23,7 @@ class InteractiveExecutionProxyHandler(
     private val authorizationServiceClient: AuthorizationService,
     private val jwtDecoder: JwtDecoder,
     private val m2mClientManager: OAuth2AuthorizedClientManager,
-    @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
+    @param:Value($$"${printscript.service.domain}") private val printScriptServiceDomain: String,
 ) : TextWebSocketHandler() {
     private val log = LoggerFactory.getLogger(InteractiveExecutionProxyHandler::class.java)
     private val webSocketClient = StandardWebSocketClient()
@@ -89,7 +89,7 @@ class InteractiveExecutionProxyHandler(
             val upstreamHandler = UpstreamHandler(downstreamSession)
 
             val upstreamUrl =
-                "$printScriptServiceUrl/ws/execute-interactive?token=$m2mToken"
+                "wss://$printScriptServiceDomain/api/language/ws/execute-interactive?token=$m2mToken"
 
             log.debug("Connecting to upstream WebSocket: snippetId=$snippetId, url=$upstreamUrl")
 
