@@ -88,8 +88,9 @@ class InteractiveExecutionProxyHandler(
 
             val upstreamHandler = UpstreamHandler(downstreamSession)
 
+            // CAMBIO CRÍTICO: Usar ws:// en lugar de wss:// para conexiones internas
             val upstreamUrl =
-                "wss://$printScriptServiceDomain/api/language/ws/execute-interactive?token=$m2mToken"
+                "ws://$printScriptServiceDomain/ws/execute-interactive?token=$m2mToken"
 
             log.debug("Connecting to upstream WebSocket: snippetId=$snippetId, url=$upstreamUrl")
 
