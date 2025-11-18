@@ -1,6 +1,7 @@
 package authorization
 
 import dtos.responses.PermissionResponseDTO
+import entity.Snippet
 
 interface AuthorizationService {
 
@@ -35,4 +36,10 @@ interface AuthorizationService {
         userId: String,
         permission: String,
     ): List<String>
+
+    fun checkReadPermission(
+        requesterId: String,
+        id: Long,
+        snippet: Snippet?,
+    )
 }

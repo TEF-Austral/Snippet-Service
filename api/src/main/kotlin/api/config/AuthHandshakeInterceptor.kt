@@ -25,37 +25,14 @@ class AuthHandshakeInterceptor(
         attributes: MutableMap<String, Any>,
     ): Boolean {
         try {
-            val queryParams = UriComponentsBuilder.fromUri(request.uri).build().queryParams
-
-            val snippetId = queryParams.getFirst("snippetId")?.toLongOrNull()
-            val token = queryParams.getFirst("token")
-
-            if (snippetId == null || token.isNullOrBlank()) {
-                log.warn(
-                    "WebSocket handshake rejected: missing snippetId or token. uri=${request.uri}",
-                )
-                response.setStatusCode(HttpStatus.FORBIDDEN)
-                return false
-            }
-
-            try {
-                jwtDecoder.decode(token)
-            } catch (e: JwtException) {
-                log.warn("WebSocket handshake rejected: Invalid JWT. ${e.message}")
-                response.setStatusCode(HttpStatus.FORBIDDEN)
-                return false
-            }
-
-            attributes["snippetId"] = snippetId
-            attributes["token"] = token
+            val (snippetId, token) = extractSnippetIdAndToken(request)
+            validateSnippetIdAndToken(snippetId, token, response, request.uri)
+            validateJwt(token!!, response)
+            setAttributes(attributes, snippetId!!, token)
             log.info("WebSocket handshake accepted: snippetId=$snippetId")
             return true
         } catch (e: Exception) {
-            val stackTrace = e.stackTrace.firstOrNull()
-            val location =
-                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
-            log.error("WebSocket handshake error at $location: ${e.message}, uri=${request.uri}", e)
-            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+            handleException(e, response, request.uri)
             return false
         }
     }
@@ -65,7 +42,59 @@ class AuthHandshakeInterceptor(
         response: ServerHttpResponse,
         wsHandler: WebSocketHandler,
         exception: Exception?,
+    ) {}
+
+    private fun extractSnippetIdAndToken(request: ServerHttpRequest): Pair<Long?, String?> {
+        val queryParams = UriComponentsBuilder.fromUri(request.uri).build().queryParams
+        val snippetId = queryParams.getFirst("snippetId")?.toLongOrNull()
+        val token = queryParams.getFirst("token")
+        return Pair(snippetId, token)
+    }
+
+    private fun validateSnippetIdAndToken(
+        snippetId: Long?,
+        token: String?,
+        response: ServerHttpResponse,
+        uri: java.net.URI,
     ) {
-        // No action needed after handshake
+        if (snippetId == null || token.isNullOrBlank()) {
+            log.warn("WebSocket handshake rejected: missing snippetId or token. uri=$uri")
+            response.setStatusCode(HttpStatus.FORBIDDEN)
+            throw IllegalArgumentException("Missing snippetId or token")
+        }
+    }
+
+    private fun validateJwt(
+        token: String,
+        response: ServerHttpResponse,
+    ) {
+        try {
+            jwtDecoder.decode(token)
+        } catch (e: JwtException) {
+            log.warn("WebSocket handshake rejected: Invalid JWT. ${e.message}")
+            response.setStatusCode(HttpStatus.FORBIDDEN)
+            throw e
+        }
+    }
+
+    private fun setAttributes(
+        attributes: MutableMap<String, Any>,
+        snippetId: Long,
+        token: String,
+    ) {
+        attributes["snippetId"] = snippetId
+        attributes["token"] = token
+    }
+
+    private fun handleException(
+        e: Exception,
+        response: ServerHttpResponse,
+        uri: java.net.URI,
+    ) {
+        val stackTrace = e.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error("WebSocket handshake error at $location: ${e.message}, uri=$uri", e)
+        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

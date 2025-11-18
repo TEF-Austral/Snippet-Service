@@ -90,32 +90,10 @@ class SnippetServiceImpl(
                 .findById(id)
                 .orElseThrow { NoSuchElementException("Snippet not found: $id") }
 
-        checkReadPermission(requesterId, id, snippet)
+        authorizationServiceClient.checkReadPermission(requesterId, id, snippet)
 
         log.debug("Snippet retrieved successfully: snippetId=$id, name=${snippet.name}")
         return snippet.toDto()
-    }
-
-    private fun checkReadPermission(
-        requesterId: String,
-        id: Long,
-        snippet: Snippet?,
-    ) {
-        if (snippet == null) {
-            throw NoSuchElementException("Snippet not found: $id")
-        }
-
-        val hasPermission =
-            authorizationServiceClient.checkPermission(
-                userId = requesterId,
-                action = UserAction.READ,
-                snippetId = id.toString(),
-                ownerId = snippet.ownerId,
-            )
-
-        if (!hasPermission) {
-            throw IllegalAccessException("You don't have permission to access this snippet")
-        }
     }
 
     override fun getMySnippets(
@@ -220,50 +198,15 @@ class SnippetServiceImpl(
     ): SnippetResponseDTO {
         log.info("Updating snippet: snippetId=$id, requesterId=$requesterId")
 
-        val existing =
-            repository
-                .findById(id)
-                .orElseThrow { NoSuchElementException("Snippet not found: $id") }
+        val existing = getExistingSnippetOrThrow(id)
 
-        val hasPermission =
-            authorizationServiceClient.checkPermission(
-                userId = requesterId,
-                action = UserAction.EDIT,
-                snippetId = id.toString(),
-                ownerId = existing.ownerId,
-            )
+        ensureEditPermission(requesterId, id, existing)
 
-        if (!hasPermission) {
-            log.warn(
-                "User does not have permission to update snippet: snippetId=$id, requesterId=$requesterId",
-            )
-            throw IllegalAccessException("You don't have permission to update this snippet")
-        }
+        applyUpdatableFields(existing, requestDTO)
 
-        requestDTO.name?.let { existing.name = it }
-        requestDTO.description?.let { existing.description = it }
-        requestDTO.language?.let { existing.language = it }
-        requestDTO.version?.let { existing.version = it }
+        requestDTO.content?.let { content -> handleContentUpdate(existing, content) }
 
-        requestDTO.content?.let { content ->
-            assetServiceClient.createOrUpdateAsset(
-                container = existing.bucketContainer,
-                key =
-                    existing.bucketKey ?: throw IllegalStateException(
-                        "Snippet has no bucket key",
-                    ),
-                content = content,
-            )
-
-            validateAndUpdateCompliance(existing)
-
-            triggerAsyncTesting(existing)
-        }
-
-        val saved = repository.save(existing)
-
-        log.info("Snippet updated successfully: snippetId=$id, name=${saved.name}")
-        return saved.toDto()
+        return saveSnippetAndReturn(existing)
     }
 
     @Transactional
@@ -282,6 +225,62 @@ class SnippetServiceImpl(
         deleteSnippetById(id)
 
         log.info("Snippet deleted successfully: snippetId=$id")
+    }
+
+    private fun ensureEditPermission(
+        requesterId: String,
+        id: Long,
+        existing: Snippet,
+    ) {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = requesterId,
+                action = UserAction.EDIT,
+                snippetId = id.toString(),
+                ownerId = existing.ownerId,
+            )
+
+        if (!hasPermission) {
+            log.warn(
+                "User does not have permission to update snippet: snippetId=$id, requesterId=$requesterId",
+            )
+            throw IllegalAccessException("You don't have permission to update this snippet")
+        }
+    }
+
+    private fun applyUpdatableFields(
+        existing: Snippet,
+        requestDTO: UpdateSnippetRequestDTO,
+    ) {
+        requestDTO.name?.let { existing.name = it }
+        requestDTO.description?.let { existing.description = it }
+        requestDTO.language?.let { existing.language = it }
+        requestDTO.version?.let { existing.version = it }
+    }
+
+    private fun handleContentUpdate(
+        existing: Snippet,
+        content: String,
+    ) {
+        assetServiceClient.createOrUpdateAsset(
+            container = existing.bucketContainer,
+            key =
+                existing.bucketKey ?: throw IllegalStateException(
+                    "Snippet has no bucket key",
+                ),
+            content = content,
+        )
+
+        validateAndUpdateCompliance(existing)
+
+        triggerAsyncTesting(existing)
+    }
+
+    private fun saveSnippetAndReturn(existing: Snippet): SnippetResponseDTO {
+        val saved = repository.save(existing)
+
+        log.info("Snippet updated successfully: snippetId=${saved.id}, name=${saved.name}")
+        return saved.toDto()
     }
 
     private fun getExistingSnippetOrThrow(id: Long): Snippet =
@@ -404,7 +403,7 @@ class SnippetServiceImpl(
 
     private fun Snippet.toDto() =
         SnippetResponseDTO(
-            snippetId = this.id ?: 0L,
+            snippetId = this.id,
             name = this.name,
             description = this.description,
             language = this.language,

@@ -2,6 +2,7 @@ package authorization
 
 import dtos.responses.CheckPermissionResponseDTO
 import dtos.responses.PermissionResponseDTO
+import entity.Snippet
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -174,5 +175,27 @@ class AuthorizationServiceClient(
             )
 
         return response.body?.toList() ?: emptyList()
+    }
+
+    override fun checkReadPermission(
+        requesterId: String,
+        id: Long,
+        snippet: Snippet?,
+    ) {
+        if (snippet == null) {
+            throw NoSuchElementException("Snippet not found: $id")
+        }
+
+        val hasPermission =
+            checkPermission(
+                userId = requesterId,
+                action = UserAction.READ,
+                snippetId = id.toString(),
+                ownerId = snippet.ownerId,
+            )
+
+        if (!hasPermission) {
+            throw IllegalAccessException("You don't have permission to access this snippet")
+        }
     }
 }

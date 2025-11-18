@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate
 @Configuration
 class M2MClientConfig {
 
-    @Value("\${auth0.audience}")
+    @Value($$"${auth0.audience}")
     private lateinit var audience: String
 
     @Bean
@@ -33,42 +33,7 @@ class M2MClientConfig {
         clientRegistrationRepository: ClientRegistrationRepository,
         authorizedClientService: OAuth2AuthorizedClientService,
     ): OAuth2AuthorizedClientManager {
-        val accessTokenResponseClient =
-            OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> { grantRequest ->
-                val restTemplate = RestTemplate()
-
-                val parameters = LinkedMultiValueMap<String, String>()
-                parameters.add("grant_type", "client_credentials")
-                parameters.add("audience", audience)
-
-                val headers = HttpHeaders()
-                headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
-                headers.setBasicAuth(
-                    grantRequest.clientRegistration.clientId,
-                    grantRequest.clientRegistration.clientSecret,
-                )
-
-                val request = HttpEntity(parameters, headers)
-                val response =
-                    restTemplate.postForEntity(
-                        grantRequest.clientRegistration.providerDetails.tokenUri,
-                        request,
-                        Map::class.java,
-                    )
-
-                val responseBody =
-                    response.body ?: throw OAuth2AuthenticationException("Invalid token response")
-                val accessToken =
-                    responseBody["access_token"] as? String
-                        ?: throw OAuth2AuthenticationException("No access token")
-                val expiresIn = (responseBody["expires_in"] as? Number)?.toLong() ?: 3600L
-
-                OAuth2AccessTokenResponse
-                    .withToken(accessToken)
-                    .tokenType(OAuth2AccessToken.TokenType.BEARER)
-                    .expiresIn(expiresIn)
-                    .build()
-            }
+        val accessTokenResponseClient = createAccessTokenResponseClient()
 
         val authorizedClientProvider =
             OAuth2AuthorizedClientProviderBuilder
@@ -86,32 +51,98 @@ class M2MClientConfig {
         return authorizedClientManager
     }
 
+    private fun createAccessTokenResponseClient(): OAuth2AccessTokenResponseClient<
+        OAuth2ClientCredentialsGrantRequest,
+    > =
+        OAuth2AccessTokenResponseClient { grantRequest ->
+            val restTemplate = RestTemplate()
+
+            val parameters = buildTokenRequestParameters(audience)
+            val headers =
+                buildTokenRequestHeaders(
+                    grantRequest.clientRegistration.clientId,
+                    grantRequest.clientRegistration.clientSecret,
+                )
+
+            val request = HttpEntity(parameters, headers)
+            val response =
+                restTemplate.postForEntity(
+                    grantRequest.clientRegistration.providerDetails.tokenUri,
+                    request,
+                    Map::class.java,
+                )
+
+            val responseBody = response.body
+            val accessToken = extractAccessTokenFromResponse(responseBody)
+            val expiresIn = extractExpiresInFromResponse(responseBody)
+
+            OAuth2AccessTokenResponse
+                .withToken(accessToken)
+                .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                .expiresIn(expiresIn)
+                .build()
+        }
+
     @Bean
     @Primary
     fun restTemplate(manager: OAuth2AuthorizedClientManager): RestTemplate {
         val restTemplate = RestTemplate()
-        val oauth2Interceptor =
-            ClientHttpRequestInterceptor { request, body, execution ->
-                val authorizeRequest =
-                    OAuth2AuthorizeRequest
-                        .withClientRegistrationId("auth0-m2m")
-                        .principal("SnippetServiceM2M")
-                        .build()
-
-                val authorizedClient =
-                    manager.authorize(authorizeRequest)
-                        ?: throw OAuth2AuthenticationException("M2M client authorization failed")
-
-                request.headers.add(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${authorizedClient.accessToken.tokenValue}",
-                )
-
-                execution.execute(request, body)
-            }
+        val oauth2Interceptor = createOAuth2Interceptor(manager)
 
         restTemplate.interceptors = listOf(oauth2Interceptor)
 
         return restTemplate
+    }
+
+    private fun createOAuth2Interceptor(
+        manager: OAuth2AuthorizedClientManager,
+    ): ClientHttpRequestInterceptor =
+        ClientHttpRequestInterceptor { request, body, execution ->
+            val authorizeRequest =
+                OAuth2AuthorizeRequest
+                    .withClientRegistrationId("auth0-m2m")
+                    .principal("SnippetServiceM2M")
+                    .build()
+
+            val authorizedClient =
+                manager.authorize(authorizeRequest)
+                    ?: throw OAuth2AuthenticationException("M2M client authorization failed")
+
+            request.headers.add(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${authorizedClient.accessToken.tokenValue}",
+            )
+
+            execution.execute(request, body)
+        }
+
+    private fun buildTokenRequestParameters(audience: String): LinkedMultiValueMap<String, String> {
+        val parameters = LinkedMultiValueMap<String, String>()
+        parameters.add("grant_type", "client_credentials")
+        parameters.add("audience", audience)
+        return parameters
+    }
+
+    private fun buildTokenRequestHeaders(
+        clientId: String,
+        clientSecret: String,
+    ): HttpHeaders {
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+        headers.setBasicAuth(clientId, clientSecret)
+        return headers
+    }
+
+    private fun extractAccessTokenFromResponse(responseBody: Map<*, *>?): String {
+        val responseBody =
+            responseBody ?: throw OAuth2AuthenticationException("Invalid token response")
+        return responseBody["access_token"] as? String
+            ?: throw OAuth2AuthenticationException("No access token")
+    }
+
+    private fun extractExpiresInFromResponse(responseBody: Map<*, *>?): Long {
+        val responseBody =
+            responseBody ?: throw OAuth2AuthenticationException("Invalid token response")
+        return (responseBody["expires_in"] as? Number)?.toLong() ?: 3600L
     }
 }

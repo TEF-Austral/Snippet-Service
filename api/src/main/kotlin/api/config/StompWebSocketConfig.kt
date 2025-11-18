@@ -13,16 +13,14 @@ class StompWebSocketConfig(
     @param:Value("\${app.websocket.allowed-origins}") private val allowedOrigins: String,
 ) : WebSocketMessageBrokerConfigurer {
 
-    // Configure STOMP message broker for test results
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
-        registry.enableSimpleBroker("/topic") // Enable in-memory broker for /topic
-        registry.setApplicationDestinationPrefixes("/app") // Application destination prefix
+        registry.enableSimpleBroker("/topic")
+        registry.setApplicationDestinationPrefixes("/app")
     }
 
-    // Register STOMP endpoint with SockJS
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry
-            .addEndpoint("/ws") // Tu endpoint STOMP
+            .addEndpoint("/ws")
             .setAllowedOrigins(allowedOrigins)
             .withSockJS()
     }
