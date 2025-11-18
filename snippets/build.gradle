@@ -1,6 +1,5 @@
 plugins {
     id 'buildlogic.kotlin-common-conventions'
-    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'com.github.tef-austral.snippet-service'
@@ -14,6 +13,7 @@ dependencies {
     implementation project(':commondto')
     implementation project(':commondata')
     implementation project(':events')
+    implementation'org.springframework.boot:spring-boot-starter-web'
 }
 
 test {

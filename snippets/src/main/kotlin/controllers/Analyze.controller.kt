@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import producers.AsyncTaskProducerInt
 import producers.strategy.TaskType
 import repositories.SnippetRepository
-import security.AuthenticatedUserProvider
+import security.AuthenticatedUserProviderInt
 
 @RestController
 @RequestMapping("/analyze")
@@ -23,7 +23,7 @@ class AnalyzeController(
     private val executionServiceClient: LanguageServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationService,
-    private val authenticatedUserProvider: AuthenticatedUserProvider,
+    private val authenticatedUserProvider: AuthenticatedUserProviderInt,
     private val asyncTaskProducer: AsyncTaskProducerInt,
 ) {
 

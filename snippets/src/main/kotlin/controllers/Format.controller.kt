@@ -1,7 +1,7 @@
 package controllers
 
 import AsyncTaskRequestContext
-import authorization.AuthorizationServiceClient
+import authorization.AuthorizationService
 import authorization.UserAction
 import controllers.utils.getSnippet
 import language.LanguageServiceClientInt
@@ -25,7 +25,7 @@ import security.AuthenticatedUserProviderInt
 class FormatController(
     private val executionServiceClient: LanguageServiceClientInt,
     private val snippetRepository: SnippetRepository,
-    private val authorizationServiceClient: AuthorizationServiceClient,
+    private val authorizationServiceClient: AuthorizationService,
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,
     private val asyncTaskProducer: AsyncTaskProducerInt,
 ) {

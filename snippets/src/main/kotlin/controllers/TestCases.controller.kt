@@ -1,6 +1,6 @@
 package controllers
 
-import authorization.AuthorizationServiceClient
+import authorization.AuthorizationService
 import authorization.UserAction
 import controllers.utils.getSnippet
 import dtos.requests.CreateTestRequestDTO
@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import repositories.SnippetRepository
-import security.AuthenticatedUserProvider
+import security.AuthenticatedUserProviderInt
 
 @RestController
 @RequestMapping("/testcases")
 class TestCasesController(
     private val executionServiceClient: LanguageServiceClientInt,
-    private val authenticatedUserProvider: AuthenticatedUserProvider,
+    private val authenticatedUserProvider: AuthenticatedUserProviderInt,
     private val snippetRepository: SnippetRepository,
-    private val authorizationServiceClient: AuthorizationServiceClient,
+    private val authorizationServiceClient: AuthorizationService,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(TestCasesController::class.java)
 
