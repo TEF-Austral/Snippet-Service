@@ -128,10 +128,8 @@ class SnippetServiceImpl(
 
         val sharedSnippetIds = snippetIdsFor(requesterId)
 
-        // Create all filters using the factory
         val filters = filterFactory.createFilters(filterDTO, requesterId, sharedSnippetIds)
 
-        // Compose filters into a single specification
         val spec =
             SnippetFilterComposer()
                 .apply { filters.forEach { addFilter(it) } }
@@ -275,26 +273,43 @@ class SnippetServiceImpl(
     ) {
         log.info("Deleting snippet: snippetId=$id, requesterId=$requesterId")
 
-        val existing =
-            repository
-                .findById(id)
-                .orElseThrow { NoSuchElementException("Snippet not found: $id") }
+        val existing = getExistingSnippetOrThrow(id)
 
+        ensureDeletePermission(requesterId, existing)
+
+        deleteAssetFor(existing)
+
+        deleteSnippetById(id)
+
+        log.info("Snippet deleted successfully: snippetId=$id")
+    }
+
+    private fun getExistingSnippetOrThrow(id: Long): Snippet =
+        repository.findById(id).orElseThrow { NoSuchElementException("Snippet not found: $id") }
+
+    private fun ensureDeletePermission(
+        requesterId: String,
+        existing: Snippet,
+    ) {
         val hasPermission =
             authorizationServiceClient.checkPermission(
                 userId = requesterId,
                 action = UserAction.DELETE,
-                snippetId = id.toString(),
+                snippetId = existing.id?.toString() ?: idToStringFallback(existing),
                 ownerId = existing.ownerId,
             )
 
         if (!hasPermission) {
             log.warn(
-                "User does not have permission to delete snippet: snippetId=$id, requesterId=$requesterId",
+                "User does not have permission to delete snippet: snippetId=${existing.id}, requesterId=$requesterId",
             )
             throw IllegalAccessException("You don't have permission to delete this snippet")
         }
+    }
 
+    private fun idToStringFallback(snippet: Snippet): String = snippet.id?.toString() ?: "unknown"
+
+    private fun deleteAssetFor(existing: Snippet) {
         val bucketKey =
             existing.bucketKey ?: throw IllegalStateException("Snippet has no bucket key")
 
@@ -302,10 +317,10 @@ class SnippetServiceImpl(
             container = existing.bucketContainer,
             key = bucketKey,
         )
+    }
 
+    private fun deleteSnippetById(id: Long) {
         repository.deleteById(id)
-
-        log.info("Snippet deleted successfully: snippetId=$id")
     }
 
     private fun validateAndUpdateCompliance(snippet: Snippet) {
@@ -322,27 +337,47 @@ class SnippetServiceImpl(
                 )
 
             if (validation.isValid) {
-                snippet.complianceStatus = ComplianceStatus.COMPLIANT
-                snippet.lastValidationError = null
-                log.debug("Snippet validation passed: snippetId=${snippet.id}")
+                markCompliant(snippet)
             } else {
-                snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
-                snippet.lastValidationError =
+                val violationsText =
                     validation.violations.joinToString("\n") {
                         "Line ${it.line}, Column ${it.column}: ${it.message}"
                     }
-                log.warn(
-                    "Snippet validation failed: snippetId=${snippet.id}, violations=${validation.violations.size}",
-                )
+                markNonCompliant(snippet, violationsText, validation.violations.size)
             }
         } catch (e: Exception) {
-            snippet.complianceStatus = ComplianceStatus.FAILED
-            snippet.lastValidationError = "Validation failed: ${e.message}"
-            val stackTrace = e.stackTrace.firstOrNull()
-            val location =
-                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
-            log.error("Validation error for snippet ${snippet.id} at $location: ${e.message}", e)
+            handleValidationException(snippet, e)
         }
+    }
+
+    private fun markCompliant(snippet: Snippet) {
+        snippet.complianceStatus = ComplianceStatus.COMPLIANT
+        snippet.lastValidationError = null
+        log.debug("Snippet validation passed: snippetId=${snippet.id}")
+    }
+
+    private fun markNonCompliant(
+        snippet: Snippet,
+        violationsText: String,
+        violationsCount: Int,
+    ) {
+        snippet.complianceStatus = ComplianceStatus.NON_COMPLIANT
+        snippet.lastValidationError = violationsText
+        log.warn(
+            "Snippet validation failed: snippetId=${snippet.id}, violations=$violationsCount",
+        )
+    }
+
+    private fun handleValidationException(
+        snippet: Snippet,
+        e: Exception,
+    ) {
+        snippet.complianceStatus = ComplianceStatus.FAILED
+        snippet.lastValidationError = "Validation failed: ${e.message}"
+        val stackTrace = e.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error("Validation error for snippet ${snippet.id} at $location: ${e.message}", e)
     }
 
     private fun triggerAsyncTesting(snippet: Snippet) {
