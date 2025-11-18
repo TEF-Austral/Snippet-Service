@@ -3,6 +3,9 @@ package services
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
 import authorization.UserAction
+import common.dtos.types.ComplianceStatus
+import component.AssetService
+import component.LanguageServiceClient
 import dtos.requests.CreateSnippetRequestDTO
 import dtos.requests.SnippetFilterDTO
 import dtos.requests.SortField
@@ -10,9 +13,6 @@ import dtos.requests.SortOrder
 import dtos.requests.UpdateSnippetRequestDTO
 import dtos.responses.PaginatedSnippetsDTO
 import dtos.responses.SnippetResponseDTO
-import common.dtos.types.ComplianceStatus
-import component.AssetService
-import component.ExecutionServiceClient
 import dtos.responses.StreamSnippetResponseDTO
 import entity.Snippet
 import filters.SnippetFilterComposer
@@ -28,15 +28,15 @@ import producers.strategy.TaskType
 import repositories.SnippetRepository
 
 @Service
-class PrintScriptSnippetService(
+class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetService,
     private val authorizationServiceClient: AuthorizationService,
-    private val printScriptServiceClient: ExecutionServiceClient,
+    private val printScriptServiceClient: LanguageServiceClient,
     private val asyncTaskProducer: AsyncTaskProducerInt,
     private val filterFactory: SnippetFilterFactory,
 ) : SnippetService {
-    private val log = LoggerFactory.getLogger(PrintScriptSnippetService::class.java)
+    private val log = LoggerFactory.getLogger(SnippetServiceImpl::class.java)
 
     @Transactional
     override fun createSnippet(

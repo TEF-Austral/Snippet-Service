@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 @Component
-class ExecutionServiceClient(
+class LanguageServiceClient(
     private val restTemplate: RestTemplate,
     @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
 ) : ExecutionServiceClientInt {

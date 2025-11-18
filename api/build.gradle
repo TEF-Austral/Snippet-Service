@@ -17,7 +17,7 @@ dependencies {
     implementation project(':security')
     implementation project(':snippets')
     implementation project(':assets')
-    implementation project(':printscript')
+    implementation project(':language')
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation("com.newrelic.agent.java:newrelic-api:8.11.0")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
