@@ -3,6 +3,7 @@ package api.handlers
 import authorization.AuthorizationService
 import authorization.UserAction
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import entity.Snippet
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest
@@ -16,7 +17,6 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import repositories.SnippetRepository
 import java.util.NoSuchElementException
-import entity.Snippet
 
 @Component
 class InteractiveExecutionProxyHandler(
@@ -31,173 +31,66 @@ class InteractiveExecutionProxyHandler(
     private val objectMapper = jacksonObjectMapper()
 
     override fun afterConnectionEstablished(downstreamSession: WebSocketSession) {
+        var snippetId: Long? = null
+        var userId: String? = null
+
         try {
-            establishConnection(downstreamSession)
-        } catch (e: Exception) {
-            handleError(downstreamSession, e)
-        }
-    }
+            snippetId = downstreamSession.attributes["snippetId"] as Long
+            val token = downstreamSession.attributes["token"].toString()
 
-    private fun establishConnection(downstreamSession: WebSocketSession) {
-        val (snippetId, token) = extractAttributes(downstreamSession)
+            log.info(
+                "WebSocket connection established for interactive execution: snippetId=$snippetId, sessionId=${downstreamSession.id}",
+            )
 
-        logConnectionEstablished(snippetId, downstreamSession.id)
+            val jwt = jwtDecoder.decode(token)
+            userId = jwt.subject
 
-        val userId = decodeUserId(token, jwtDecoder)
+            val snippet = getSnippet(snippetId)
 
-        logJwtDecoded(userId, snippetId)
+            if (hasExecutionPermission(userId, snippetId, snippet, downstreamSession)) return
 
-        val snippet = findSnippet(snippetId, snippetRepository)
+            val m2mToken = getM2MToken()
 
-        if (!checkAndHandlePermission(userId, snippetId, snippet, downstreamSession)) return
-
-        val m2mToken = getAndHandleM2MToken(snippetId, userId, downstreamSession) ?: return
-
-        val upstreamSession = connectUpstream(printScriptServiceDomain, m2mToken, downstreamSession)
-
-        logUpstreamConnected(snippetId, upstreamSession.id)
-
-        sendInitMessage(upstreamSession, snippet, objectMapper)
-
-        logExecutionInitialized(snippetId, userId, snippet)
-
-        downstreamSession.attributes["UPSTREAM_SESSION"] = upstreamSession
-    }
-
-    override fun handleTextMessage(
-        downstreamSession: WebSocketSession,
-        message: TextMessage,
-    ) {
-        try {
-            val upstreamSession = getUpstreamSession(downstreamSession)
-            if (upstreamSession?.isOpen == true) {
-                upstreamSession.sendMessage(message)
-                logMessageForwarded(downstreamSession.id, message.payloadLength)
-            } else {
-                logUpstreamNotAvailable(downstreamSession.id)
+            if (m2mToken == null) {
+                log.error(
+                    "Failed to obtain M2M token for interactive execution: snippetId=$snippetId, userId=$userId",
+                )
+                downstreamSession.close(
+                    CloseStatus.SERVER_ERROR.withReason("Failed to obtain M2M token"),
+                )
+                return
             }
+
+            val upstreamHandler = UpstreamHandler(downstreamSession)
+
+            val upstreamSession =
+                setupExecutionSession(m2mToken, upstreamHandler, snippet, snippetId, userId)
+
+            downstreamSession.attributes["UPSTREAM_SESSION"] = upstreamSession
         } catch (e: Exception) {
-            logTextMessageError(downstreamSession.id, e)
+            handleException(e, snippetId, userId, downstreamSession)
         }
     }
 
-    private fun logConnectionEstablished(
-        snippetId: Long,
-        sessionId: String,
-    ) {
-        log.info(
-            "WebSocket connection established for interactive execution: " +
-                "snippetId=$snippetId, sessionId=$sessionId",
-        )
-    }
-
-    private fun logJwtDecoded(
-        userId: String,
-        snippetId: Long,
-    ) {
-        log.debug("JWT decoded successfully: userId=$userId, snippetId=$snippetId")
-    }
-
-    private fun checkAndHandlePermission(
-        userId: String,
-        snippetId: Long,
-        snippet: Snippet,
-        session: WebSocketSession,
-    ): Boolean {
-        if (!checkPermission(userId, snippetId, snippet, authorizationServiceClient)) {
-            log.warn(
-                "User does not have permission for interactive execution: userId=$userId, snippetId=$snippetId",
-            )
-            session.close(
-                CloseStatus.POLICY_VIOLATION.withReason(
-                    "You don't have permission to execute this snippet",
-                ),
-            )
-            return false
-        }
-        log.debug("Permission check passed: userId=$userId, snippetId=$snippetId")
-        return true
-    }
-
-    private fun getAndHandleM2MToken(
-        snippetId: Long,
-        userId: String,
-        session: WebSocketSession,
-    ): String? {
-        val m2mToken = getM2MToken()
-        if (m2mToken == null) {
-            log.error(
-                "Failed to obtain M2M token for interactive execution: snippetId=$snippetId, userId=$userId",
-            )
-            session.close(
-                CloseStatus.SERVER_ERROR.withReason("Failed to obtain M2M token"),
-            )
-            return null
-        }
-        log.debug("M2M token obtained successfully: snippetId=$snippetId")
-        return m2mToken
-    }
-
-    private fun logUpstreamConnected(
-        snippetId: Long,
-        upstreamSessionId: String,
-    ) {
-        log.debug(
-            "Upstream WebSocket connected: snippetId=$snippetId, upstreamSessionId=$upstreamSessionId",
-        )
-    }
-
-    private fun logExecutionInitialized(
-        snippetId: Long,
-        userId: String,
-        snippet: Snippet,
-    ) {
-        log.info(
-            "Interactive execution initialized successfully: snippetId=$snippetId, userId=$userId, container=${snippet.bucketContainer}, key=${snippet.bucketKey}",
-        )
-    }
-
-    private fun handleError(
-        downstreamSession: WebSocketSession,
+    private fun handleException(
         e: Exception,
+        snippetId: Long?,
+        userId: String?,
+        downstreamSession: WebSocketSession,
     ) {
-        logError(e)
-        sendErrorMessage(downstreamSession, e)
-        closeSessionOnError(downstreamSession, e)
-    }
-
-    private fun logError(e: Exception) {
         val stackTrace = e.stackTrace.firstOrNull()
         val location =
             stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
         log.error(
-            "Error establishing WebSocket proxy connection at $location: error=${e.message}",
+            "Error establishing WebSocket proxy connection at $location: snippetId=$snippetId, userId=$userId, error=${e.message}",
             e,
         )
-    }
 
-    private fun sendErrorMessage(
-        session: WebSocketSession,
-        e: Exception,
-    ) {
         try {
-            session.sendMessage(
+            downstreamSession.sendMessage(
                 TextMessage("{\"type\":\"Error\", \"value\":\"Internal error: ${e.message}\"}"),
             )
-        } catch (closeException: Exception) {
-            log.error(
-                "Error sending error message: ${closeException.message}",
-                closeException,
-            )
-        }
-    }
-
-    private fun closeSessionOnError(
-        session: WebSocketSession,
-        e: Exception,
-    ) {
-        try {
-            session.close(
+            downstreamSession.close(
                 CloseStatus.SERVER_ERROR.withReason(e.message ?: "Internal error"),
             )
         } catch (closeException: Exception) {
@@ -208,170 +101,18 @@ class InteractiveExecutionProxyHandler(
         }
     }
 
-    private fun getUpstreamSession(downstreamSession: WebSocketSession): WebSocketSession? =
-        downstreamSession.attributes["UPSTREAM_SESSION"] as? WebSocketSession
-
-    private fun logMessageForwarded(
-        sessionId: String,
-        messageSize: Int,
-    ) {
-        log.debug(
-            "Message forwarded to upstream: sessionId=$sessionId, messageSize=$messageSize",
-        )
-    }
-
-    private fun logUpstreamNotAvailable(sessionId: String) {
-        log.warn(
-            "Upstream session not available or closed: sessionId=$sessionId",
-        )
-    }
-
-    private fun logTextMessageError(
-        sessionId: String,
-        e: Exception,
-    ) {
-        val stackTrace = e.stackTrace.firstOrNull()
-        val location =
-            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
-        log.error(
-            "Error handling text message at $location: sessionId=$sessionId, error=${e.message}",
-            e,
-        )
-    }
-
-    override fun afterConnectionClosed(
-        downstreamSession: WebSocketSession,
-        status: CloseStatus,
-    ) {
-        try {
-            val upstreamSession = getUpstreamSession(downstreamSession)
-            if (upstreamSession?.isOpen == true) {
-                upstreamSession.close(status)
-                logUpstreamClosed(downstreamSession.id, status)
-            }
-            logConnectionClosed(downstreamSession.id, status)
-        } catch (e: Exception) {
-            logConnectionClosedError(downstreamSession.id, e)
-        }
-    }
-
-    private fun logUpstreamClosed(
-        sessionId: String,
-        status: CloseStatus,
-    ) {
-        log.info(
-            "Upstream WebSocket closed: sessionId=$sessionId, status=$status",
-        )
-    }
-
-    private fun logConnectionClosed(
-        sessionId: String,
-        status: CloseStatus,
-    ) {
-        log.info(
-            "WebSocket connection closed: sessionId=$sessionId, status=$status",
-        )
-    }
-
-    private fun logConnectionClosedError(
-        sessionId: String,
-        e: Exception,
-    ) {
-        val stackTrace = e.stackTrace.firstOrNull()
-        val location =
-            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
-        log.error(
-            "Error closing WebSocket connection at $location: sessionId=$sessionId, error=${e.message}",
-            e,
-        )
-    }
-
-    private fun getM2MToken(): String? =
-        try {
-            log.debug("Requesting M2M token")
-            val token = requestM2MToken()
-            logTokenResult(token)
-            token
-        } catch (e: Exception) {
-            logM2MTokenError(e)
-            null
-        }
-
-    private fun requestM2MToken(): String? {
-        val authorizeRequest =
-            OAuth2AuthorizeRequest
-                .withClientRegistrationId("auth0-m2m")
-                .principal("SnippetServiceM2M")
-                .build()
-        val authorizedClient = m2mClientManager.authorize(authorizeRequest)
-        return authorizedClient?.accessToken?.tokenValue
-    }
-
-    private fun logTokenResult(token: String?) {
-        if (token != null) {
-            log.debug("M2M token obtained successfully")
-        } else {
-            log.warn("M2M token is null")
-        }
-    }
-
-    private fun logM2MTokenError(e: Exception) {
-        val stackTrace = e.stackTrace.firstOrNull()
-        val location =
-            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
-        log.error("Error getting M2M token at $location: ${e.message}", e)
-    }
-
-    private fun extractAttributes(downstreamSession: WebSocketSession): Pair<Long, String> {
-        val snippetId = downstreamSession.attributes["snippetId"] as Long
-        val token = downstreamSession.attributes["token"].toString()
-        return Pair(snippetId, token)
-    }
-
-    private fun decodeUserId(
-        token: String,
-        jwtDecoder: JwtDecoder,
-    ): String {
-        val jwt = jwtDecoder.decode(token)
-        return jwt.subject
-    }
-
-    private fun findSnippet(
-        snippetId: Long,
-        snippetRepository: SnippetRepository,
-    ): Snippet =
-        snippetRepository.findById(snippetId).orElseThrow {
-            NoSuchElementException("Snippet not found: $snippetId")
-        }
-
-    private fun checkPermission(
-        userId: String,
-        snippetId: Long,
-        snippet: Snippet,
-        authorizationServiceClient: AuthorizationService,
-    ): Boolean =
-        authorizationServiceClient.checkPermission(
-            userId = userId,
-            action = UserAction.EDIT,
-            snippetId = snippetId.toString(),
-            ownerId = snippet.ownerId,
-        )
-
-    private fun connectUpstream(
-        printScriptServiceDomain: String,
+    private fun setupExecutionSession(
         m2mToken: String,
-        downstreamSession: WebSocketSession,
-    ): WebSocketSession {
-        val upstreamHandler = UpstreamHandler(downstreamSession)
-        val upstreamUrl = "ws://$printScriptServiceDomain/ws/execute-interactive?token=$m2mToken"
-        return webSocketClient.execute(upstreamHandler, upstreamUrl).get()
-    }
-
-    private fun sendInitMessage(
-        upstreamSession: WebSocketSession,
+        upstreamHandler: UpstreamHandler,
         snippet: Snippet,
-        objectMapper: com.fasterxml.jackson.databind.ObjectMapper,
-    ) {
+        snippetId: Long,
+        userId: String?,
+    ): WebSocketSession? {
+        val upstreamUrl =
+            "ws://$printScriptServiceDomain/ws/execute-interactive?token=$m2mToken"
+
+        val upstreamSession = webSocketClient.execute(upstreamHandler, upstreamUrl).get()
+
         val initMessage =
             mapOf(
                 "type" to "InitExecution",
@@ -380,5 +121,124 @@ class InteractiveExecutionProxyHandler(
                 "version" to snippet.version,
             )
         upstreamSession.sendMessage(TextMessage(objectMapper.writeValueAsString(initMessage)))
+
+        log.info(
+            "Interactive execution initialized successfully: snippetId=$snippetId, userId=$userId, container=${snippet.bucketContainer}, key=${snippet.bucketKey}",
+        )
+        return upstreamSession
+    }
+
+    private fun getSnippet(snippetId: Long): Snippet =
+        snippetRepository
+            .findById(snippetId)
+            .orElseThrow { NoSuchElementException("Snippet not found: $snippetId") }
+
+    private fun hasExecutionPermission(
+        userId: String,
+        snippetId: Long,
+        snippet: Snippet?,
+        downstreamSession: WebSocketSession,
+    ): Boolean {
+        val hasPermission =
+            authorizationServiceClient.checkPermission(
+                userId = userId,
+                action = UserAction.EDIT,
+                snippetId = snippetId.toString(),
+                ownerId = snippet!!.ownerId,
+            )
+
+        if (!hasPermission) {
+            log.warn(
+                "User does not have permission for interactive execution: userId=$userId, snippetId=$snippetId",
+            )
+            downstreamSession.close(
+                CloseStatus.POLICY_VIOLATION.withReason(
+                    "You don't have permission to execute this snippet",
+                ),
+            )
+            return true
+        }
+        return false
+    }
+
+    override fun handleTextMessage(
+        downstreamSession: WebSocketSession,
+        message: TextMessage,
+    ) {
+        try {
+            val upstreamSession =
+                downstreamSession.attributes["UPSTREAM_SESSION"]
+                    as? WebSocketSession
+            if (upstreamSession?.isOpen == true) {
+                upstreamSession.sendMessage(message)
+                log.debug(
+                    "Message forwarded to upstream: sessionId=${downstreamSession.id}, messageSize=${message.payloadLength}",
+                )
+            } else {
+                log.warn(
+                    "Upstream session not available or closed: sessionId=${downstreamSession.id}",
+                )
+            }
+        } catch (e: Exception) {
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error(
+                "Error handling text message at $location: sessionId=${downstreamSession.id}, error=${e.message}",
+                e,
+            )
+        }
+    }
+
+    override fun afterConnectionClosed(
+        downstreamSession: WebSocketSession,
+        status: CloseStatus,
+    ) {
+        try {
+            val upstreamSession =
+                downstreamSession.attributes["UPSTREAM_SESSION"]
+                    as? WebSocketSession
+            if (upstreamSession?.isOpen == true) {
+                upstreamSession.close(status)
+                log.info(
+                    "Upstream WebSocket closed: sessionId=${downstreamSession.id}, status=$status",
+                )
+            }
+            log.info(
+                "WebSocket connection closed: sessionId=${downstreamSession.id}, status=$status",
+            )
+        } catch (e: Exception) {
+            val stackTrace = e.stackTrace.firstOrNull()
+            val location =
+                stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+            log.error(
+                "Error closing WebSocket connection at $location: sessionId=${downstreamSession.id}, error=${e.message}",
+                e,
+            )
+        }
+    }
+
+    private fun getM2MToken(): String? {
+        try {
+            val authorizeRequest =
+                OAuth2AuthorizeRequest
+                    .withClientRegistrationId("auth0-m2m")
+                    .principal("SnippetServiceM2M")
+                    .build()
+
+            val authorizedClient = m2mClientManager.authorize(authorizeRequest)
+            val token = authorizedClient?.accessToken?.tokenValue
+            return token
+        } catch (e: Exception) {
+            return handleM2MTokenError(e)
+        }
+    }
+
+    private fun handleM2MTokenError(e: Exception): Nothing? {
+        val stackTrace = e.stackTrace.firstOrNull()
+        val location =
+            stackTrace?.let { "${it.className}.${it.methodName}:${it.lineNumber}" } ?: "Unknown"
+        log.error("Error getting M2M token at $location: ${e.message}", e)
+        return null
     }
 }
