@@ -4,7 +4,7 @@ import dtos.requests.CreateTestRequestDTO
 import dtos.responses.TestDTO
 import dtos.responses.TestExecutionResponseDTO
 import dtos.responses.ValidationResponseDTO
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate
 class LanguageServiceClient(
     private val restTemplate: RestTemplate,
     @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
-) : ExecutionServiceClientInt {
+) : LanguageServiceClientInt {
 
     override fun analyzeSnippet(
         container: String,

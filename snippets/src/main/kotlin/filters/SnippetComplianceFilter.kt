@@ -1,6 +1,6 @@
 package filters
 
-import dtos.requests.ComplianceFilter
+import dtos.types.ComplianceFilter
 import entity.Snippet
 import org.springframework.data.jpa.domain.Specification
 

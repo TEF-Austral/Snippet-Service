@@ -1,6 +1,6 @@
 package handlers.utils
 
-import common.dtos.types.ComplianceStatus
+import dtos.types.ComplianceStatus
 import dtos.responses.LintingResultEvent
 import entity.Snippet
 import org.slf4j.LoggerFactory

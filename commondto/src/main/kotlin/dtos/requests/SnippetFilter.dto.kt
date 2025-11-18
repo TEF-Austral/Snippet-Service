@@ -1,6 +1,10 @@
 package dtos.requests
 
+import dtos.types.ComplianceFilter
 import dtos.types.Language
+import dtos.types.OwnershipFilter
+import dtos.types.SortField
+import dtos.types.SortOrder
 
 data class SnippetFilterDTO(
     val ownership: OwnershipFilter = OwnershipFilter.ALL,
@@ -10,28 +14,3 @@ data class SnippetFilterDTO(
     val sortBy: SortField = SortField.NAME,
     val sortOrder: SortOrder = SortOrder.ASC,
 )
-
-enum class OwnershipFilter {
-    OWNED,
-    SHARED,
-    ALL,
-}
-
-enum class ComplianceFilter {
-    PENDING,
-    FAILED,
-    NON_COMPLIANT,
-    COMPLIANT,
-    ALL,
-}
-
-enum class SortField {
-    NAME,
-    LANGUAGE,
-    COMPLIANCE,
-}
-
-enum class SortOrder {
-    ASC,
-    DESC,
-}

@@ -11,7 +11,8 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    implementation project(':common')
+    implementation project(':commondto')
+    implementation project(':commondata')
 }
 
 test {

@@ -14,12 +14,13 @@ dependencies {
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.1.0'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
-    implementation project(':common')
-    implementation project(':assets')
     testImplementation("io.mockk:mockk:1.13.10")
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation("org.springframework:spring-messaging")
+    implementation project(':commondto')
+    implementation project(':commondata')
+    implementation project(':assets')
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
 }
 
 test {

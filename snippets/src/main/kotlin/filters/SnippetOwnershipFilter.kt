@@ -1,6 +1,6 @@
 package filters
 
-import dtos.requests.OwnershipFilter
+import dtos.types.OwnershipFilter
 import entity.Snippet
 import org.springframework.data.jpa.domain.Specification
 

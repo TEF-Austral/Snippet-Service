@@ -5,7 +5,7 @@ import dtos.responses.TestDTO
 import dtos.responses.TestExecutionResponseDTO
 import dtos.responses.ValidationResponseDTO
 
-interface ExecutionServiceClientInt {
+interface LanguageServiceClientInt {
 
     fun analyzeSnippet(
         container: String,

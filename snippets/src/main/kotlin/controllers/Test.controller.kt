@@ -6,7 +6,7 @@ import authorization.UserAction
 import controllers.utils.getSnippet
 import dtos.requests.TestExecutionRequestDTO
 import dtos.responses.TestExecutionResponseDTO
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,7 +21,7 @@ import security.AuthenticatedUserProviderInt
 @RestController
 @RequestMapping("/tests")
 class TestController(
-    private val executionServiceClient: ExecutionServiceClientInt,
+    private val executionServiceClient: LanguageServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationService,
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,

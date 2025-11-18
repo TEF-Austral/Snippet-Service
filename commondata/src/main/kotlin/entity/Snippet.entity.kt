@@ -1,6 +1,6 @@
 package entity
 
-import common.dtos.types.ComplianceStatus
+import dtos.types.ComplianceStatus
 import dtos.types.Language
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

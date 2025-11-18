@@ -1,7 +1,7 @@
 package filters
 
-import dtos.requests.ComplianceFilter
-import dtos.requests.OwnershipFilter
+import dtos.types.ComplianceFilter
+import dtos.types.OwnershipFilter
 import dtos.types.Language
 import entity.Snippet
 import filters.specifications.ComplianceSpecificationFactory

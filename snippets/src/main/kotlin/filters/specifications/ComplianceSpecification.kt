@@ -1,6 +1,6 @@
 package filters.specifications
 
-import common.dtos.types.ComplianceStatus
+import dtos.types.ComplianceStatus
 import entity.Snippet
 import org.springframework.data.jpa.domain.Specification
 

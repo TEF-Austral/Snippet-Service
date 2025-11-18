@@ -4,7 +4,7 @@ import AsyncTaskRequestContext
 import authorization.AuthorizationServiceClient
 import authorization.UserAction
 import controllers.utils.getSnippet
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -23,7 +23,7 @@ import security.AuthenticatedUserProviderInt
 @RestController
 @RequestMapping("/format")
 class FormatController(
-    private val executionServiceClient: ExecutionServiceClientInt,
+    private val executionServiceClient: LanguageServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,
     private val authenticatedUserProvider: AuthenticatedUserProviderInt,

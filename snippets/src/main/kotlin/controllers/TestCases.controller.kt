@@ -5,7 +5,7 @@ import authorization.UserAction
 import controllers.utils.getSnippet
 import dtos.requests.CreateTestRequestDTO
 import dtos.responses.TestDTO
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -23,7 +23,7 @@ import security.AuthenticatedUserProvider
 @RestController
 @RequestMapping("/testcases")
 class TestCasesController(
-    private val executionServiceClient: ExecutionServiceClientInt,
+    private val executionServiceClient: LanguageServiceClientInt,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationServiceClient,

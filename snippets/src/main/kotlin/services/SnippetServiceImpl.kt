@@ -3,13 +3,13 @@ package services
 import AsyncTaskRequestContext
 import authorization.AuthorizationService
 import authorization.UserAction
-import common.dtos.types.ComplianceStatus
+import dtos.types.ComplianceStatus
 import component.AssetService
 import component.LanguageServiceClient
 import dtos.requests.CreateSnippetRequestDTO
 import dtos.requests.SnippetFilterDTO
-import dtos.requests.SortField
-import dtos.requests.SortOrder
+import dtos.types.SortField
+import dtos.types.SortOrder
 import dtos.requests.UpdateSnippetRequestDTO
 import dtos.responses.PaginatedSnippetsDTO
 import dtos.responses.SnippetResponseDTO

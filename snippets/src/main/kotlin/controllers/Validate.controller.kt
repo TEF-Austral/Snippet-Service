@@ -2,7 +2,7 @@ package controllers
 
 import dtos.requests.ValidateContentRequestDTO
 import dtos.responses.ValidationResponseDTO
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/snippets")
 class ValidateContentController(
-    private val executionServiceClient: ExecutionServiceClientInt,
+    private val executionServiceClient: LanguageServiceClientInt,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(ValidateContentController::class.java)
 

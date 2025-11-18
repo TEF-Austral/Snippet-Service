@@ -1,6 +1,6 @@
 package handlers
 
-import common.dtos.types.ComplianceStatus
+import dtos.types.ComplianceStatus
 import dtos.types.Language
 import dtos.responses.LintingResultEvent
 import dtos.responses.ViolationDTO

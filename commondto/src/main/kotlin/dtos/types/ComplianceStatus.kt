@@ -1,4 +1,4 @@
-package common.dtos.types
+package dtos.types
 
 enum class ComplianceStatus {
     PENDING,

@@ -5,7 +5,7 @@ import authorization.AuthorizationService
 import authorization.UserAction
 import controllers.utils.getSnippet
 import dtos.responses.ValidationResponseDTO
-import language.ExecutionServiceClientInt
+import language.LanguageServiceClientInt
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,7 +20,7 @@ import security.AuthenticatedUserProvider
 @RestController
 @RequestMapping("/analyze")
 class AnalyzeController(
-    private val executionServiceClient: ExecutionServiceClientInt,
+    private val executionServiceClient: LanguageServiceClientInt,
     private val snippetRepository: SnippetRepository,
     private val authorizationServiceClient: AuthorizationService,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
