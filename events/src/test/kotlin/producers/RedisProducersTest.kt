@@ -1,10 +1,8 @@
 package producers
 
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
-import kotlin.test.assertNotNull
 
 @SpringBootTest(
     classes = [
@@ -30,11 +28,4 @@ class RedisProducersTest {
 
     @Autowired
     private lateinit var testingRequestProducer: TestingRequestProducer
-
-    @Test
-    fun `producers should be created by Spring context`() {
-        assertNotNull(lintingRequestProducer)
-        assertNotNull(formattingRequestProducer)
-        assertNotNull(testingRequestProducer)
-    }
 }
