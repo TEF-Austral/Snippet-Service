@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate
 @Component
 class LanguageServiceClient(
     private val restTemplate: RestTemplate,
-    @param:Value("\${printscript.service.url}") private val printScriptServiceUrl: String,
+    @param:Value($$"${printscript.service.url}") private val printScriptServiceUrl: String,
 ) : LanguageServiceClientInt {
 
     override fun analyzeSnippet(

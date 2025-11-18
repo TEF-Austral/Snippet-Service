@@ -11,6 +11,8 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation project(':commondata')
 }
 
 test {
@@ -19,4 +21,3 @@ test {
 kotlin {
     jvmToolchain(21)
 }
-

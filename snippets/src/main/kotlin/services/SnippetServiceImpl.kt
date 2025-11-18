@@ -1,11 +1,10 @@
 package services
 
 import AsyncTaskRequestContext
+import assets.AssetService
 import authorization.AuthorizationService
 import authorization.UserAction
 import dtos.types.ComplianceStatus
-import component.AssetService
-import component.LanguageServiceClient
 import dtos.requests.CreateSnippetRequestDTO
 import dtos.requests.SnippetFilterDTO
 import dtos.types.SortField
@@ -17,6 +16,7 @@ import dtos.responses.StreamSnippetResponseDTO
 import entity.Snippet
 import filters.SnippetFilterComposer
 import filters.SnippetFilterFactory
+import language.LanguageServiceClientInt
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -32,7 +32,7 @@ class SnippetServiceImpl(
     private val repository: SnippetRepository,
     private val assetServiceClient: AssetService,
     private val authorizationServiceClient: AuthorizationService,
-    private val printScriptServiceClient: LanguageServiceClient,
+    private val printScriptServiceClient: LanguageServiceClientInt,
     private val asyncTaskProducer: AsyncTaskProducerInt,
     private val filterFactory: SnippetFilterFactory,
 ) : SnippetService {

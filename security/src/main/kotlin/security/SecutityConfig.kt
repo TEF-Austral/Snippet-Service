@@ -10,7 +10,6 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
-// Hola fondo sur
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http

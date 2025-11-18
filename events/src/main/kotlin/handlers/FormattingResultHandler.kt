@@ -1,6 +1,6 @@
 package handlers
 
-import component.AssetService
+import assets.AssetService
 import handlers.utils.findSnippetOrThrow
 import handlers.utils.handleException
 import org.slf4j.LoggerFactory

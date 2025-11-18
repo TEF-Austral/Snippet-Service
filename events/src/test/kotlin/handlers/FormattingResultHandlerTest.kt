@@ -1,6 +1,6 @@
 package handlers
 
-import component.AssetService
+import assets.AssetService
 import dtos.responses.FormattingResultEvent
 import entity.Snippet
 import org.junit.jupiter.api.Test

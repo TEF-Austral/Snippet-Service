@@ -122,7 +122,7 @@ class SnippetSharingController(
         snippetId: String,
         canRead: Boolean,
         canEdit: Boolean,
-    ): Boolean {
+    ) {
         authorizationServiceClient.grantPermission(
             requesterId = requesterId,
             ownerId = ownerId,
@@ -131,7 +131,6 @@ class SnippetSharingController(
             canRead = canRead,
             canEdit = canEdit,
         )
-        return true
     }
 
     private fun revokePermissionFromUser(

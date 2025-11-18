@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @SpringBootApplication(
     scanBasePackages = [
-        "events", "common", "security", "authorization", "consumers", "handlers",
+        "events", "security", "authorization", "consumers", "handlers",
         "config", "producers", "api", "assets", "repositories", "component", "filters",
         "controllers", "services", "service", // include service packages
 
@@ -17,8 +17,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         // Módulo 'events'
         "config", "consumers", "events", "handlers", "producers", "requests",
 
-        // Módulo 'common'
-        "repositories",
+        // Módulo 'commondata'
+        "repositories", "entity", "language",
+
+        // Modulo 'commondto'
+        "dtos",
 
         // Módulos 'printscript' y 'assets'
         "component",
