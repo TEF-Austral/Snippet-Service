@@ -216,8 +216,8 @@ class AuthorizationServiceClientTest {
                 ownerId,
                 granteeId,
                 snippetId,
-                true,
-                true,
+                canRead = true,
+                canEdit = true,
             )
 
         assertTrue(result.canRead)
@@ -250,8 +250,8 @@ class AuthorizationServiceClientTest {
                 ownerId,
                 granteeId,
                 snippetId,
-                true,
-                false,
+                canRead = true,
+                canEdit = false,
             )
             throw AssertionError("Expected IllegalStateException")
         } catch (e: IllegalStateException) {

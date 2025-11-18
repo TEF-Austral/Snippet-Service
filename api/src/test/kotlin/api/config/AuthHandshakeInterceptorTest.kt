@@ -73,6 +73,6 @@ class AuthHandshakeInterceptorTest {
         assertTrue(allowed)
         assertTrue(attrs["snippetId"] == 42L)
         assertTrue(attrs["token"] == "good")
-        Mockito.verify(response, Mockito.never()).setStatusCode(org.mockito.ArgumentMatchers.any())
+        verify(response, Mockito.never()).setStatusCode(org.mockito.ArgumentMatchers.any())
     }
 }

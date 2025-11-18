@@ -8,8 +8,6 @@ class OrSpecification(
     private val specifications: List<SnippetSpecification>,
 ) : SnippetSpecification {
 
-    constructor(vararg specs: SnippetSpecification) : this(specs.toList())
-
     override fun toSpecification(): Specification<Snippet> =
         Specification { root, query, cb ->
             val predicates =
@@ -21,16 +19,9 @@ class OrSpecification(
         }
 }
 
-/**
- * Composite specification that combines multiple specifications using AND logic.
- * Follows the Composite pattern for flexible specification composition.
- * Open/Closed Principle: Can be extended with new specifications without modification.
- */
 class AndSpecification(
     private val specifications: List<SnippetSpecification>,
 ) : SnippetSpecification {
-
-    constructor(vararg specs: SnippetSpecification) : this(specs.toList())
 
     override fun toSpecification(): Specification<Snippet> =
         Specification { root, query, cb ->

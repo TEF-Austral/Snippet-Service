@@ -81,7 +81,14 @@ class SnippetSharingControllerTest {
         assertEquals(true, response.body?.permissions?.canEdit)
         verify(
             authorizationServiceClient,
-        ).grantPermission(userId, ownerId, granteeId, snippetId.toString(), true, true)
+        ).grantPermission(
+            userId,
+            ownerId,
+            granteeId,
+            snippetId.toString(),
+            canRead = true,
+            canEdit = true,
+        )
     }
 
     @Test

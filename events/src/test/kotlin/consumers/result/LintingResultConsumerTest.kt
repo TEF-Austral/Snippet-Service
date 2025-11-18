@@ -15,7 +15,6 @@ import org.springframework.data.redis.stream.StreamReceiver
 import java.time.Duration
 import kotlin.test.assertEquals
 
-// --- Clase Helper para testear métodos protegidos ---
 internal class TestableLintingResultConsumer(
     streamKey: String,
     consumerGroup: String,
@@ -33,18 +32,17 @@ internal class TestableLintingResultConsumer(
     > =
         super.options()
 }
-// ----------------------------------------------------
 
 class LintingResultConsumerTest {
 
-    private lateinit var consumer: TestableLintingResultConsumer // Usamos la clase helper
+    private lateinit var consumer: TestableLintingResultConsumer
     private val handler: LintingResultHandlerInt = mockk(relaxed = true)
     private val redisTemplate: RedisTemplate<String, String> = mockk(relaxed = true)
 
     @BeforeEach
     fun setup() {
         consumer =
-            TestableLintingResultConsumer( // Instanciamos la clase helper
+            TestableLintingResultConsumer(
                 streamKey = "test-stream",
                 consumerGroup = "test-group",
                 redis = redisTemplate,
@@ -54,7 +52,6 @@ class LintingResultConsumerTest {
 
     @Test
     fun `onMessage should call handler with event`() {
-        // Arrange
         val event =
             LintingResultEvent(
                 snippetId = 1L,
@@ -67,16 +64,13 @@ class LintingResultConsumerTest {
                 every { value } returns event
             }
 
-        // Act
         consumer.onMessage(record)
 
-        // Assert
         verify(exactly = 1) { handler.handleLintingResult(event) }
     }
 
     @Test
     fun `onMessage should catch and log exception from handler`() {
-        // Arrange
         val event =
             LintingResultEvent(
                 snippetId = 1L,
@@ -90,20 +84,16 @@ class LintingResultConsumerTest {
             }
         every { handler.handleLintingResult(event) } throws RuntimeException("Handler failed")
 
-        // Act & Assert
         assertDoesNotThrow {
             consumer.onMessage(record)
         }
-        // Verificamos que el handler fue llamado
         verify(exactly = 1) { handler.handleLintingResult(event) }
     }
 
     @Test
     fun `options should return correct configuration`() {
-        // Act
         val options = consumer.options()
 
-        // Assert
         assertEquals(Duration.ofMillis(30000), options.pollTimeout)
 
         assertTrue(LintingResultEvent::class.java == options.getTargetType())

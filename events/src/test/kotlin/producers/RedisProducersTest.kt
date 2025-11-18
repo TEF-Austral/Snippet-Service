@@ -3,8 +3,6 @@ package producers
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.test.context.TestPropertySource
 import kotlin.test.assertNotNull
 
@@ -24,9 +22,6 @@ import kotlin.test.assertNotNull
 )
 class RedisProducersTest {
 
-    @MockBean
-    private lateinit var redisTemplate: RedisTemplate<String, String>
-
     @Autowired
     private lateinit var lintingRequestProducer: LintingRequestProducer
 
@@ -38,9 +33,6 @@ class RedisProducersTest {
 
     @Test
     fun `producers should be created by Spring context`() {
-        // El simple hecho de que @Autowired funcione significa que
-        // Spring pudo resolver las dependencias (@Value y RedisTemplate)
-        // y llamar al constructor, cubriendo el código de esas clases.
         assertNotNull(lintingRequestProducer)
         assertNotNull(formattingRequestProducer)
         assertNotNull(testingRequestProducer)

@@ -15,7 +15,6 @@ import org.springframework.data.redis.stream.StreamReceiver
 import java.time.Duration
 import kotlin.test.assertEquals
 
-// --- Clase Helper para testear métodos protegidos ---
 internal class TestableFormattingResultConsumer(
     streamKey: String,
     consumerGroup: String,
@@ -23,7 +22,6 @@ internal class TestableFormattingResultConsumer(
     handler: FormattingResultHandlerInt,
 ) : FormattingResultConsumer(streamKey, consumerGroup, redisTemplate, handler) {
 
-    // Hacemos públicos los métodos protegidos para el test
     public override fun onMessage(record: ObjectRecord<String, FormattingResultEvent>) {
         super.onMessage(record)
     }
@@ -34,18 +32,17 @@ internal class TestableFormattingResultConsumer(
     > =
         super.options()
 }
-// ----------------------------------------------------
 
 class FormattingResultConsumerTest {
 
-    private lateinit var consumer: TestableFormattingResultConsumer // Usamos la clase helper
+    private lateinit var consumer: TestableFormattingResultConsumer
     private val handler: FormattingResultHandlerInt = mockk(relaxed = true)
     private val redisTemplate: RedisTemplate<String, String> = mockk(relaxed = true)
 
     @BeforeEach
     fun setup() {
         consumer =
-            TestableFormattingResultConsumer( // Instanciamos la clase helper
+            TestableFormattingResultConsumer(
                 streamKey = "test-stream",
                 consumerGroup = "test-group",
                 redisTemplate = redisTemplate,
@@ -55,8 +52,6 @@ class FormattingResultConsumerTest {
 
     @Test
     fun `onMessage should call handler with event`() {
-        // Arrange
-        // CORREGIDO: Usamos la DTO correcta de FormattingResultEvent
         val event =
             FormattingResultEvent(
                 requestId = "req-1",
@@ -69,17 +64,13 @@ class FormattingResultConsumerTest {
                 every { value } returns event
             }
 
-        // Act
         consumer.onMessage(record)
 
-        // Assert
         verify(exactly = 1) { handler.handleFormattingResult(event) }
     }
 
     @Test
     fun `onMessage should catch and log exception from handler`() {
-        // Arrange
-        // CORREGIDO: Usamos la DTO correcta
         val event =
             FormattingResultEvent(
                 requestId = "req-1",
@@ -93,7 +84,6 @@ class FormattingResultConsumerTest {
             }
         every { handler.handleFormattingResult(event) } throws RuntimeException("Handler failed")
 
-        // Act & Assert
         assertDoesNotThrow {
             consumer.onMessage(record)
         }
@@ -102,10 +92,8 @@ class FormattingResultConsumerTest {
 
     @Test
     fun `options should return correct configuration`() {
-        // Act
         val options = consumer.options()
 
-        // Assert
         assertEquals(Duration.ofMillis(30000), options.pollTimeout)
 
         assertTrue(FormattingResultEvent::class.java == options.getTargetType())
