@@ -12,6 +12,7 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     implementation project(':commondto')
     implementation project(':commondata')
+    implementation project(':commoncontracts')
     implementation project(':events')
     implementation'org.springframework.boot:spring-boot-starter-web'
 }

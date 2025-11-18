@@ -14,6 +14,7 @@ dependencies {
     implementation project(':events')
     implementation project(':commondata')
     implementation project(':commondto')
+    implementation project(':commoncontracts')
     implementation project(':authorization')
     implementation project(':security')
     implementation project(':snippets')

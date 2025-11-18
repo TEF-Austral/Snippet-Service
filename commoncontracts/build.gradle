@@ -1,9 +1,7 @@
 plugins {
     id 'buildlogic.kotlin-common-conventions'
-    id 'org.jetbrains.kotlin.jvm'
 }
 
-group = 'com.github.tef-austral.snippet-service'
 
 repositories {
     mavenCentral()
@@ -11,9 +9,7 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation project(':commondto')
-    implementation project(':commoncontracts')
 }
 
 test {
