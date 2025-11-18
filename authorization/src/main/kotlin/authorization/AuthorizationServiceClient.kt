@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate
 @Component
 class AuthorizationServiceClient(
     private val restTemplate: RestTemplate,
-    @param:Value("\${authorization.service.url}") private val authorizationServiceUrl: String,
+    @param:Value($$"${authorization.service.url}") private val authorizationServiceUrl: String,
 ) : AuthorizationService {
 
     override fun checkPermission(
