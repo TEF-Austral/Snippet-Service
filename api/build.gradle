@@ -12,9 +12,21 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation project(':events')
-    implementation project(':common')
+    implementation project(':commondata')
+    implementation project(':commondto')
+    implementation project(':commoncontracts')
+    implementation project(':authorization')
+    implementation project(':security')
+    implementation project(':snippets')
+    implementation project(':assets')
+    implementation project(':language')
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation("com.newrelic.agent.java:newrelic-api:8.11.0")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation('org.austral.ingsis:redis-streams-mvc:0.1.13')
 }
 
 tasks.named('bootJar') {
@@ -34,5 +46,5 @@ kotlin {
 }
 
 springBoot {
-    mainClass = 'snippet.SnippetServiceApplicationKt'
+    mainClass = 'api.SnippetServiceApplicationKt'
 }

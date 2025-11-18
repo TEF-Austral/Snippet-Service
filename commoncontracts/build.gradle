@@ -1,0 +1,21 @@
+plugins {
+    id 'buildlogic.kotlin-common-conventions'
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation project(':commondto')
+    implementation project(':commondata')
+}
+
+test {
+    useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
+}

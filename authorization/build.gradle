@@ -1,0 +1,25 @@
+plugins {
+    id 'buildlogic.kotlin-common-conventions'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group = 'com.github.tef-austral.snippet-service'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation project(':commondto')
+    implementation project(':commondata')
+    implementation project(':commoncontracts')
+}
+
+test {
+    useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(21)
+}

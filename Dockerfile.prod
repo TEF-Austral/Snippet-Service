@@ -22,7 +22,4 @@ COPY --from=build /home/gradle/src/newrelic/newrelic.yml /app/newrelic/
 
 COPY --from=build /home/gradle/src/api/build/libs/*.jar /app/spring-boot-application.jar
 
-ENV NEW_RELIC_LOG_FILE_NAME=STDOUT
-ENV NEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true
-
-ENTRYPOINT ["java", "-javaagent:/app/newrelic/newrelic.jar", "-Dspring.profiles.active=production", "-jar", "/app/spring-boot-application.jar"]
+ENTRYPOINT ["sh", "-c", "java -javaagent:/app/newrelic/newrelic.jar -Dnewrelic.config.license_key=${NEW_RELIC_LICENSE_KEY} -Dspring.profiles.active=production -jar /app/spring-boot-application.jar"]

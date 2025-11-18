@@ -1,5 +1,11 @@
 package snippet.controllers
 
+import authorization.AuthorizationServiceClient
+import authorization.UserAction
+import controllers.SnippetSharingController
+import dtos.requests.ShareSnippetDTO
+import dtos.types.Language
+import entity.Snippet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -8,12 +14,8 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
-import snippet.component.AuthorizationServiceClient
-import snippet.dtos.ShareSnippetDTO
-import snippet.entities.Snippet
-import snippet.repositories.SnippetRepository
-import snippet.security.AuthenticatedUserProvider
-import common.Language
+import repositories.SnippetRepository
+import security.AuthenticatedUserProvider
 import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -62,7 +64,7 @@ class SnippetSharingControllerTest {
         `when`(
             authorizationServiceClient.checkPermission(
                 userId,
-                "share",
+                UserAction.SHARE,
                 snippetId.toString(),
                 ownerId,
             ),
@@ -79,7 +81,14 @@ class SnippetSharingControllerTest {
         assertEquals(true, response.body?.permissions?.canEdit)
         verify(
             authorizationServiceClient,
-        ).grantPermission(userId, ownerId, granteeId, snippetId.toString(), true, true)
+        ).grantPermission(
+            userId,
+            ownerId,
+            granteeId,
+            snippetId.toString(),
+            canRead = true,
+            canEdit = true,
+        )
     }
 
     @Test
@@ -111,7 +120,7 @@ class SnippetSharingControllerTest {
         `when`(
             authorizationServiceClient.checkPermission(
                 userId,
-                "share",
+                UserAction.SHARE,
                 snippetId.toString(),
                 ownerId,
             ),
@@ -174,7 +183,7 @@ class SnippetSharingControllerTest {
         `when`(
             authorizationServiceClient.checkPermission(
                 userId,
-                "share",
+                UserAction.SHARE,
                 snippetId.toString(),
                 ownerId,
             ),
@@ -211,7 +220,7 @@ class SnippetSharingControllerTest {
         `when`(
             authorizationServiceClient.checkPermission(
                 requesterId,
-                "share",
+                UserAction.SHARE,
                 snippetId.toString(),
                 ownerId,
             ),
@@ -265,7 +274,7 @@ class SnippetSharingControllerTest {
         `when`(
             authorizationServiceClient.checkPermission(
                 requesterId,
-                "share",
+                UserAction.SHARE,
                 snippetId.toString(),
                 ownerId,
             ),

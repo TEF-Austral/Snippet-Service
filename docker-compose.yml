@@ -3,42 +3,52 @@ services:
     container_name: "snippet-service-api"
     build:
       context: .
-      dockerfile: Dockerfile.dev
-      args:
-        GITHUB_ACTOR: ${GITHUB_ACTOR}
-        REDIS_TOKEN: ${REDIS_TOKEN}
-    image: ghcr.io/tef-austral/snippet-api:latest
+      dockerfile: Dockerfile.prod
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SPRING_DATASOURCE_URL: jdbc:postgresql://snippet-service-db:5432/${POSTGRES_DB_SNIPPET}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER_SNIPPET}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD_SNIPPET}
+      AUTH0_ISSUER_URI: ${AUTH0_ISSUER_URI}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      SNIPPET_SERVICE_M2M_CLIENT_ID: ${SNIPPET_SERVICE_M2M_CLIENT_ID}
+      SNIPPET_SERVICE_M2M_CLIENT_SECRET: ${SNIPPET_SERVICE_M2M_CLIENT_SECRET}
+      AUTH0_TOKEN_URI: ${AUTH0_TOKEN_URI}
+      PRINTSCRIPT_SERVICE_URL: ${PRINTSCRIPT_SERVICE_URL}
+      AUTHORIZATION_SERVICE_URL: ${AUTHORIZATION_SERVICE_URL}
+      ASSET_SERVICE_URL: ${ASSET_SERVICE_URL}
+      REDIS_HOST: redis-bus
+      REDIS_PORT: 6379
+      NEW_RELIC_APP_NAME: "Snippet-Service-Local"
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: true
     ports:
-      - 8002:8080
+      - "8002:8080"
     env_file:
       - .env
     depends_on:
-      - db
-      - redis
+      - snippet-service-db
+      - redis-bus
 
-  db:
-    container_name: snippet_db
+  snippet-service-db:
     image: postgres:16
-    ports:
-      - 5434:5432
+    container_name: snippet_db_local
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    env_file:
-      - .env
+      POSTGRES_USER: ${POSTGRES_USER_SNIPPET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_SNIPPET}
+      POSTGRES_DB: ${POSTGRES_DB_SNIPPET}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - snippet_data_local:/var/lib/postgresql/data
 
-  redis:
-    container_name: snippet_redis
+  redis-bus:
     image: redis:7-alpine
+    container_name: redis_bus_local
     ports:
-      - 6379:6379
+      - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_data_local:/data
     command: redis-server --appendonly yes
 
 volumes:
-  pgdata:
-  redis_data:
+  snippet_data_local:
+  redis_data_local:

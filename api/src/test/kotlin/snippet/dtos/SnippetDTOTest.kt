@@ -1,14 +1,17 @@
 package snippet.dtos
 
-import common.Language
+import dtos.requests.CreateSnippetRequestDTO
+import dtos.requests.ShareSnippetDTO
+import dtos.requests.UpdateSnippetRequestDTO
+import dtos.responses.CheckPermissionResponseDTO
+import dtos.responses.FileTypeDTO
+import dtos.responses.PaginatedSnippetsDTO
+import dtos.responses.PermissionResponseDTO
+import dtos.responses.PermissionsSummaryDTO
+import dtos.responses.ShareSnippetResponseDTO
+import dtos.responses.SnippetResponseDTO
+import dtos.types.Language
 import org.junit.jupiter.api.Test
-import snippet.dtos.requests.CreateSnippetRequestDTO
-import snippet.dtos.requests.UpdateSnippetRequestDTO
-import snippet.dtos.responses.CheckPermissionResponseDTO
-import snippet.dtos.responses.FileTypeDTO
-import snippet.dtos.responses.PermissionResponseDTO
-import snippet.dtos.responses.ShareSnippetResponseDTO
-import snippet.dtos.responses.SnippetResponseDTO
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 

@@ -1,5 +1,9 @@
 package snippet.component
 
+import authorization.AuthorizationServiceClient
+import authorization.UserAction
+import dtos.responses.CheckPermissionResponseDTO
+import dtos.responses.PermissionResponseDTO
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -11,8 +15,6 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
-import snippet.dtos.responses.CheckPermissionResponseDTO
-import snippet.dtos.responses.PermissionResponseDTO
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -38,7 +40,7 @@ class AuthorizationServiceClientTest {
     @Test
     fun `checkPermission should return true when permission is granted`() {
         val userId = "user123"
-        val action = "read"
+        val action = UserAction.READ
         val snippetId = "1"
         val ownerId = "owner123"
         val url = "$authorizationServiceUrl/api/authorization/check"
@@ -61,7 +63,7 @@ class AuthorizationServiceClientTest {
     @Test
     fun `checkPermission should return false when permission is denied`() {
         val userId = "user123"
-        val action = "edit"
+        val action = UserAction.EDIT
         val snippetId = "1"
         val ownerId = "owner123"
         val url = "$authorizationServiceUrl/api/authorization/check"
@@ -87,7 +89,7 @@ class AuthorizationServiceClientTest {
     @Test
     fun `checkPermission should return false when exception occurs`() {
         val userId = "user123"
-        val action = "delete"
+        val action = UserAction.DELETE
         val snippetId = "1"
         val ownerId = "owner123"
         val url = "$authorizationServiceUrl/api/authorization/check"
@@ -112,7 +114,7 @@ class AuthorizationServiceClientTest {
     @Test
     fun `checkPermission should return false when response body is null`() {
         val userId = "user123"
-        val action = "read"
+        val action = UserAction.READ
         val snippetId = "1"
         val ownerId = "owner123"
         val url = "$authorizationServiceUrl/api/authorization/check"
@@ -214,8 +216,8 @@ class AuthorizationServiceClientTest {
                 ownerId,
                 granteeId,
                 snippetId,
-                true,
-                true,
+                canRead = true,
+                canEdit = true,
             )
 
         assertTrue(result.canRead)
@@ -248,8 +250,8 @@ class AuthorizationServiceClientTest {
                 ownerId,
                 granteeId,
                 snippetId,
-                true,
-                false,
+                canRead = true,
+                canEdit = false,
             )
             throw AssertionError("Expected IllegalStateException")
         } catch (e: IllegalStateException) {
