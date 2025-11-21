@@ -45,8 +45,6 @@ class FormattingResultHandler(
     }
 
     private fun handleSuccess(result: FormattingResultEvent) {
-        log.debug("Formatting succeeded for snippet ${result.snippetId}, updating asset")
-
         val snippet = findSnippetOrThrow(snippetRepository, result.snippetId)
 
         if (snippet.bucketKey == null) {
