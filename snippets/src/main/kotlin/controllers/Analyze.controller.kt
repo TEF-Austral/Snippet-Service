@@ -64,7 +64,7 @@ class AnalyzeController(
     }
 
     @GetMapping("/club")
-    fun getClub(): ResponseEntity<String> = ResponseEntity.ok("BOCA")
+    fun getClub(): ResponseEntity<String> = throw NoSuchElementException()
 
     @GetMapping("/compile")
     fun compileSnippet(

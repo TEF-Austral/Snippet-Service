@@ -18,8 +18,12 @@ class SecurityConfig {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }.authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/actuator/health", "/ws/**", "/api/ws/execute-interactive")
-                    .permitAll()
+                    .requestMatchers(
+                        "/actuator/health",
+                        "/ws/**",
+                        "/api/ws/execute-interactive",
+                        "/analyze/club",
+                    ).permitAll()
                     .anyRequest()
                     .authenticated()
             }.oauth2ResourceServer { oauth2 ->
