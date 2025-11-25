@@ -16,6 +16,7 @@ import producers.AsyncTaskProducerInt
 import producers.strategy.TaskType
 import repositories.SnippetRepository
 import security.AuthenticatedUserProviderInt
+import kotlin.Exception
 
 @RestController
 @RequestMapping("/analyze")
@@ -64,7 +65,7 @@ class AnalyzeController(
     }
 
     @GetMapping("/club")
-    fun getClub(): ResponseEntity<String> = throw NoSuchElementException()
+    fun getClub(): ResponseEntity<String> = throw Exception()
 
     @GetMapping("/compile")
     fun compileSnippet(
