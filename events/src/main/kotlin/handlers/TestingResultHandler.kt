@@ -35,7 +35,6 @@ class TestingResultHandler(
                 }
             }
 
-            // Send WebSocket notification to connected clients
             webSocketNotificationService.sendTestResult(result)
         } catch (e: Exception) {
             val stackTrace = e.stackTrace.firstOrNull()
