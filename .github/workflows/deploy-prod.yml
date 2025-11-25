@@ -97,7 +97,7 @@ jobs:
               "client_payload": {
                 "service": "${{ github.event.repository.name }}",
                 "environment": "prod",
-                "version": "${{ needs.versioning.outputs.version }}", # <-- Now valid
+                "version": "${{ needs.versioning.outputs.version }}",
                 "sha": "${{ github.sha }}"
               }
             }'
