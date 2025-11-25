@@ -64,7 +64,10 @@ class AnalyzeController(
     }
 
     @GetMapping("/club")
-    fun getClub(): ResponseEntity<String> = ResponseEntity.status(500).body("Internal server error")
+    fun getClub(): ResponseEntity<String> {
+        log.error("Hola como estas 🦧")
+        ResponseEntity.status(500).body("Internal server error")
+    }
 
     @GetMapping("/compile")
     fun compileSnippet(
