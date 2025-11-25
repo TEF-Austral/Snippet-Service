@@ -16,7 +16,6 @@ import producers.AsyncTaskProducerInt
 import producers.strategy.TaskType
 import repositories.SnippetRepository
 import security.AuthenticatedUserProviderInt
-import kotlin.Exception
 
 @RestController
 @RequestMapping("/analyze")
@@ -65,7 +64,7 @@ class AnalyzeController(
     }
 
     @GetMapping("/club")
-    fun getClub(): ResponseEntity<String> = throw Exception()
+    fun getClub(): ResponseEntity<String> = ResponseEntity.status(500).body("Internal server error")
 
     @GetMapping("/compile")
     fun compileSnippet(
