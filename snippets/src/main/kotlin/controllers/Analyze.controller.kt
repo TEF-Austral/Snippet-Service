@@ -63,6 +63,9 @@ class AnalyzeController(
         return ResponseEntity.ok(result)
     }
 
+    @GetMapping("/club")
+    fun getClub(): ResponseEntity<String> = ResponseEntity.ok("BOCA")
+
     @GetMapping("/compile")
     fun compileSnippet(
         @RequestParam("snippetId") snippetId: Long,
