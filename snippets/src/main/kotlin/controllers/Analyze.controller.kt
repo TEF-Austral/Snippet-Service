@@ -66,7 +66,7 @@ class AnalyzeController(
     @GetMapping("/club")
     fun getClub(): ResponseEntity<String> {
         log.error("Hola como estas 🦧")
-        ResponseEntity.status(500).body("Internal server error")
+        return ResponseEntity.status(500).body("Internal server error")
     }
 
     @GetMapping("/compile")
