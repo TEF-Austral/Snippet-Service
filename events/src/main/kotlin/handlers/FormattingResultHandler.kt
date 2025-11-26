@@ -5,7 +5,7 @@ import handlers.utils.findSnippetOrThrow
 import handlers.utils.handleException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import dtos.responses.FormattingResultEvent
+import dtos.responses.FormattingResultEventDTO
 import repositories.SnippetRepository
 
 @Service
@@ -15,7 +15,7 @@ class FormattingResultHandler(
 ) : FormattingResultHandlerInt {
     private val log = LoggerFactory.getLogger(FormattingResultHandler::class.java)
 
-    override fun handleFormattingResult(result: FormattingResultEvent) {
+    override fun handleFormattingResult(result: FormattingResultEventDTO) {
         try {
             process(result)
         } catch (e: Exception) {
@@ -30,21 +30,21 @@ class FormattingResultHandler(
         }
     }
 
-    private fun process(result: FormattingResultEvent) {
+    private fun process(result: FormattingResultEventDTO) {
         logProcessing(result)
         if (isSuccessful(result)) handleSuccess(result) else handleFailure(result)
     }
 
-    private fun isSuccessful(result: FormattingResultEvent) =
+    private fun isSuccessful(result: FormattingResultEventDTO) =
         result.success && result.formattedContent != null
 
-    private fun logProcessing(result: FormattingResultEvent) {
+    private fun logProcessing(result: FormattingResultEventDTO) {
         log.info(
             "Processing formatting result for snippet: snippetId=${result.snippetId}, requestId=${result.requestId}",
         )
     }
 
-    private fun handleSuccess(result: FormattingResultEvent) {
+    private fun handleSuccess(result: FormattingResultEventDTO) {
         val snippet = findSnippetOrThrow(snippetRepository, result.snippetId)
 
         if (snippet.bucketKey == null) {
@@ -65,7 +65,7 @@ class FormattingResultHandler(
         )
     }
 
-    private fun handleFailure(result: FormattingResultEvent) {
+    private fun handleFailure(result: FormattingResultEventDTO) {
         log.warn(
             "Formatting failed for snippet: snippetId=${result.snippetId}, requestId=${result.requestId}, error=${result.error}",
         )

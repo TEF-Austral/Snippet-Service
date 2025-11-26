@@ -1,8 +1,8 @@
 package handlers
 
-import dtos.responses.FormattingResultEvent
+import dtos.responses.FormattingResultEventDTO
 
 interface FormattingResultHandlerInt {
 
-    fun handleFormattingResult(result: FormattingResultEvent)
+    fun handleFormattingResult(result: FormattingResultEventDTO)
 }

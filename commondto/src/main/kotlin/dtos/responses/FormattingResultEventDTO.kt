@@ -1,6 +1,6 @@
 package dtos.responses
 
-data class FormattingResultEvent(
+data class FormattingResultEventDTO(
     val requestId: String,
     val snippetId: Long,
     val success: Boolean,

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.connection.stream.ObjectRecord
 import org.springframework.data.redis.stream.StreamReceiver
 import org.springframework.stereotype.Component
-import dtos.responses.FormattingResultEvent
+import dtos.responses.FormattingResultEventDTO
 import org.springframework.data.redis.core.RedisTemplate
 import java.time.Duration
 
@@ -19,10 +19,10 @@ class FormattingResultConsumer(
     @param:Value($$"${spring.redis.consumer.group}") private val consumerGroup: String,
     redisTemplate: RedisTemplate<String, String>,
     private val handler: FormattingResultHandlerInt,
-) : RedisStreamConsumer<FormattingResultEvent>(streamKey, consumerGroup, redisTemplate) {
+) : RedisStreamConsumer<FormattingResultEventDTO>(streamKey, consumerGroup, redisTemplate) {
     private val log = LoggerFactory.getLogger(FormattingResultConsumer::class.java)
 
-    override fun onMessage(record: ObjectRecord<String, FormattingResultEvent>) {
+    override fun onMessage(record: ObjectRecord<String, FormattingResultEventDTO>) {
         try {
             val event = record.value
             log.debug(
@@ -39,11 +39,11 @@ class FormattingResultConsumer(
 
     override fun options(): StreamReceiver.StreamReceiverOptions<
         String,
-        ObjectRecord<String, FormattingResultEvent>,
+        ObjectRecord<String, FormattingResultEventDTO>,
     > =
         StreamReceiver.StreamReceiverOptions
             .builder()
             .pollTimeout(Duration.ofMillis(30000))
-            .targetType(FormattingResultEvent::class.java)
+            .targetType(FormattingResultEventDTO::class.java)
             .build()
 }

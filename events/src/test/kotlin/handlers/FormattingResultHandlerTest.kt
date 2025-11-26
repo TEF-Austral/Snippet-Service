@@ -1,7 +1,7 @@
 package handlers
 
 import assets.AssetService
-import dtos.responses.FormattingResultEvent
+import dtos.responses.FormattingResultEventDTO
 import entity.Snippet
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,7 +39,7 @@ class FormattingResultHandlerTest {
 
         val handler = FormattingResultHandler(repository, assetService)
         val evt =
-            FormattingResultEvent(
+            FormattingResultEventDTO(
                 requestId = "r",
                 snippetId = 1L,
                 success = true,
@@ -70,7 +70,7 @@ class FormattingResultHandlerTest {
 
         val handler = FormattingResultHandler(repository, assetService)
         val evt =
-            FormattingResultEvent(
+            FormattingResultEventDTO(
                 requestId = "r",
                 snippetId = 2L,
                 success = true,
@@ -86,7 +86,7 @@ class FormattingResultHandlerTest {
     fun `failed formatting only logs`() {
         val handler = FormattingResultHandler(repository, assetService)
         val evt =
-            FormattingResultEvent(
+            FormattingResultEventDTO(
                 requestId = "r",
                 snippetId = 99L,
                 success = false,

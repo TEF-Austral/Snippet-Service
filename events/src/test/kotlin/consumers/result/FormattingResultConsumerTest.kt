@@ -1,6 +1,6 @@
 package consumers.result
 
-import dtos.responses.FormattingResultEvent
+import dtos.responses.FormattingResultEventDTO
 import handlers.FormattingResultHandlerInt
 import io.mockk.every
 import io.mockk.mockk
@@ -22,13 +22,13 @@ internal class TestableFormattingResultConsumer(
     handler: FormattingResultHandlerInt,
 ) : FormattingResultConsumer(streamKey, consumerGroup, redisTemplate, handler) {
 
-    public override fun onMessage(record: ObjectRecord<String, FormattingResultEvent>) {
+    public override fun onMessage(record: ObjectRecord<String, FormattingResultEventDTO>) {
         super.onMessage(record)
     }
 
     public override fun options(): StreamReceiver.StreamReceiverOptions<
         String,
-        ObjectRecord<String, FormattingResultEvent>,
+        ObjectRecord<String, FormattingResultEventDTO>,
     > =
         super.options()
 }
@@ -53,13 +53,13 @@ class FormattingResultConsumerTest {
     @Test
     fun `onMessage should call handler with event`() {
         val event =
-            FormattingResultEvent(
+            FormattingResultEventDTO(
                 requestId = "req-1",
                 snippetId = 1L,
                 success = true,
                 formattedContent = "content",
             )
-        val record: ObjectRecord<String, FormattingResultEvent> =
+        val record: ObjectRecord<String, FormattingResultEventDTO> =
             mockk {
                 every { value } returns event
             }
@@ -72,13 +72,13 @@ class FormattingResultConsumerTest {
     @Test
     fun `onMessage should catch and log exception from handler`() {
         val event =
-            FormattingResultEvent(
+            FormattingResultEventDTO(
                 requestId = "req-1",
                 snippetId = 1L,
                 success = false,
                 error = "fail",
             )
-        val record: ObjectRecord<String, FormattingResultEvent> =
+        val record: ObjectRecord<String, FormattingResultEventDTO> =
             mockk {
                 every { value } returns event
             }
@@ -96,6 +96,6 @@ class FormattingResultConsumerTest {
 
         assertEquals(Duration.ofMillis(30000), options.pollTimeout)
 
-        assertTrue(FormattingResultEvent::class.java == options.getTargetType())
+        assertTrue(FormattingResultEventDTO::class.java == options.getTargetType())
     }
 }
